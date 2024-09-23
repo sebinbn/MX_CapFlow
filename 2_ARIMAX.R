@@ -1,47 +1,33 @@
-# CCFs -------------------------------------------------------------------------
+# This code estimates ARIMAX model where F_Own_p is the X variable.
+# GMXN10Y. It uses BBYield, Own_Data and TIIE to calculate price elasticity
+# from daily data.It uses Own_Data and Mex_W to calculate price elasticity from
+# weekly data. The table in paper reports the daily results.
+
+library(forecast) #for using auto.arima
+
+# Model Selection ---------------------------------------------------------
 
 #Checking ARIMA structure for 10yr and 1mo yield.
-lapply(Mex2[,c(8,9)], auto.arima) #suggest 0,1,0 for both
-lapply(Mex1[,c(8,9)], auto.arima) #suggest 0,1,2 for 1mo and 0,1,0 for 10y
+lapply(Mex_w[,c('MPTBA',"GMXN10Y")], auto.arima, max.d = 1, xreg = Mex_w$F_Own_p) #suggest 1,1,1 for 1mo and 0,1,5 for 10yr
 
-#generating CCFs on first difference for weekly data
-ccf(diff(Mex2[,"r10y_i"]), diff(Mex2[,"r1mo_i"]),lag.max = 5,ylab = "CCF", xlab = "")
-ccf(diff(Mex1[,"r10y_i"]), diff(Mex1[,"r1mo_i"]),lag.max = 5,ylab = "CCF", xlab = "")
+for(i in 1:3){
+  test_10y = arima(Mex_w$GMXN10Y, order = c(0,1,i))
+print(test_10y)
+print(BIC(test_10y))
+}                                                                                 #tested AR(i), MA(i) and conclude that AR(1,1,0) is best
 
-#generating CCFs on first difference for daily data
-ccf_d_h = ccf(diff(Mex2[,"r10y"]), diff(Mex2[,"r1mo"]),lag.max = 5,ylab = "CCF", xlab = "")
-ccf_d_l = ccf(diff(Mex1[,"r10y"]), diff(Mex1[,"r1mo"]),lag.max = 5,ylab = "CCF", xlab = "")
+#testing Unit root for F_Own_p
+summary(ur.df(Mex_w$F_Own_p, type = "none"))
+summary(ur.df(diff(Mex_w$F_Own_p), type = "none"))                                #there is unit root
 
+# Estimating ARIMAX model --------------------------------------------------
 
-acf(na.omit(diff(slope101[date_pre]))) #ACF and PACF at 1st lag significant
-ar101 = arima(slope101[date_pre], order = c(0,1,1)) #This is better than AR1. ARMA11 makes both insignificant.
-ar101
-acf2(ar101$residuals)
+Model_10y = Arima(Mex_w$GMXN10Y, order = c(1,1,0), xreg = Mex_w$F_Own_p )
+Model_10y
+(1-pnorm(abs(Model_10y$coef)/sqrt(diag(Model_10y$var.coef))))*2                 #calculating p-value
+Model_10y$nobs
 
-par(mfrow = c(2,2), mai = c(0.7,0.7,0.5,0.1))
-fitwhite = residuals(Arima(slope101[date_pre], model = ar101))
-fitwhite1 = residuals(Arima(all_ts$WACR[date_pre], model = ar101))
-ccf(fitwhite1,fitwhite, ylab = "CCF", xlab = "", main = "10yr-1yr ~ WACR", lag.max = 15)
-fitwhite1 = residuals(Arima(all_ts$Liquidity[date_pre], model = ar101))
-ccf(fitwhite1,fitwhite, ylab = "", xlab = "", main = "10yr-1yr ~ Liquidity", lag.max = 15)
-fitwhite1 = residuals(Arima(all_ts$EFFR[date_pre], model = ar101))
-ccf(fitwhite1,fitwhite, ylab = "CCF", main = "10yr-1yr ~ EFFR", lag.max = 15)
-fitwhite1 = residuals(Arima(all_ts$US10yr[date_pre], model = ar101))
-ccf(fitwhite1,fitwhite, ylab = "", main = "10yr-1yr ~ US10yr", lag.max = 15)
-
-# ARIMAX model for 10yr yield --------------------------------------------------
-Mex_w_ar = Mex_w[Mex_w$Date <= as.Date("2019-07-01"),]
-auto.arima(Mex_w_ar$Prop_FO)
-auto.arima(Mex_w$r10y)
-auto.arima(Mex_w[Mex_w$Date < as.Date("2023-08-01"),"r1mo"])
-auto.arima(Mex_w$TIIE)
-soln = arima(Mex_w$r10y, order = c(3,1,0), xreg = Mex_w$Prop_FO )
-(1-pnorm(abs(soln$coef)/sqrt(diag(soln$var.coef))))*2
-
-soln = arima(Mex_w[Mex_w$Date < as.Date("2023-08-01"),"r1mo"],order = c(1,1,0),
-             xreg = Mex_w[Mex_w$Date < as.Date("2023-08-01"),"Prop_FO"] )         #subsetting as values are missing Aug 2023 onwards
-soln$nobs
-
-soln = arima(Mex_w$TIIE, order = c(0,1,3), xreg = Mex_w$Prop_FO )
-soln
-summary(ur.df(diff(Mex_w$TIIE), type = "none"))
+Model_1mo = Arima(Mex_w$MPTBA, order = c(1,1,1), xreg = Mex_w$F_Own_p )
+Model_1mo
+(1-pnorm(abs(Model_1mo$coef)/sqrt(diag(Model_1mo$var.coef))))*2                 #calculating p-value
+Model_1mo$nobs
