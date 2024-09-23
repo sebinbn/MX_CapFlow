@@ -47,7 +47,7 @@ source("Mexicopaper_analysis/1_TabCreate_SVAR.R")
 
 # Analysis ----------------------------------------------------------------
 
-# Using elasticity for each owner for few yields are calculated using Own_Data,
+# Elasticity for each owner class for few yields are calculated using Own_Data,
 # BBYield, TIIE and Mex_w. It returns Tab_Elast_d for daily data and Tab_Elast_w
 # for weekly data
 source("Mexicopaper_analysis/2_Elasticity.R")
@@ -55,6 +55,9 @@ source("Mexicopaper_analysis/2_Elasticity.R")
 # Using Mex_w, ADF test is run on the 4 SVAR variables both at levels and first
 # differences. The results are stored in matrix ADF_tab
 source("Mexicopaper_analysis/2_ADFtest.R")
+
+# ARIMAX of 10yr and 1mo yield on Proportion of FO
+source("Mexicopaper_analysis/2_ARIMAX.R")
 
 # Creating figures --------------------------------------------------------
 
