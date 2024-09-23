@@ -1,5 +1,6 @@
 # 26 aug - file created by copying code, but not reviewed
 
+library(urca)         #for ur.df
 
 # Creating date indices for subsetting ------------------------------------
 Index = cbind(Mex_w$Date <= as.Date("2011-12-31") & Mex_w$Date >= as.Date("2010-01-01"),

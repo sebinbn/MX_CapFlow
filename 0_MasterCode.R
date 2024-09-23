@@ -9,11 +9,11 @@ library(ggplot2)      #for plots
 library(reshape2)     #for using melt() which converts data to long format convenient for ggplot
 library(ggpubr)       #for multiple plots in one figure using ggarrange()
 library(zoo)
-library(urca)         #for ur.df
+
 
 
 #setwd("C:/Users/sbnidhir/OneDrive - University Of Houston/Research/MP transmission/Data_Analysis")
-setwd("C:/Users/sebin/OneDrive - University Of Houston/Research/MP transmission/Data_Analysis")
+#setwd("C:/Users/sebin/OneDrive - University Of Houston/Research/MP transmission/Data_Analysis")
 setwd('../')                                                                      #goes up one level to Data_Analysis folder
 rm(list = ls())
 
@@ -56,7 +56,7 @@ source("Mexicopaper_analysis/2_Elasticity.R")
 # differences. The results are stored in matrix ADF_tab
 source("Mexicopaper_analysis/2_ADFtest.R")
 
-# ARIMAX of 10yr and 1mo yield on Proportion of Foreign Ownership
+# ARIMAX of 10yr and 1mo yield on Proportion of Foreign Ownership. Uses Mex_W
 source("Mexicopaper_analysis/2_ARIMAX.R")
 
 # Creating figures --------------------------------------------------------
