@@ -56,7 +56,7 @@ source("Mexicopaper_analysis/2_Elasticity.R")
 # differences. The results are stored in matrix ADF_tab
 source("Mexicopaper_analysis/2_ADFtest.R")
 
-# ARIMAX of 10yr and 1mo yield on Proportion of FO
+# ARIMAX of 10yr and 1mo yield on Proportion of Foreign Ownership
 source("Mexicopaper_analysis/2_ARIMAX.R")
 
 # Creating figures --------------------------------------------------------
