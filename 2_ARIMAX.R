@@ -1,7 +1,6 @@
-# This code estimates ARIMAX model where F_Own_p is the X variable.
-# GMXN10Y. It uses BBYield, Own_Data and TIIE to calculate price elasticity
-# from daily data.It uses Own_Data and Mex_W to calculate price elasticity from
-# weekly data. The table in paper reports the daily results.
+# This code estimates ARIMAX model where F_Own_p is the X variable.It uses Mex_w
+# for weekly data.
+
 
 library(forecast) #for using auto.arima
 

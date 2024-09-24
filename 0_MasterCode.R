@@ -53,8 +53,12 @@ source("Mexicopaper_analysis/1_TabCreate_SVAR.R")
 source("Mexicopaper_analysis/2_Elasticity.R")
 
 # Using Mex_w, ADF test is run on the 4 SVAR variables both at levels and first
-# differences. The results are stored in matrix ADF_tab
+# differences. The results are stored in matrix ADF_tab. Returns first differenced
+# Mex_w_d used in 2_SVAR.R
 source("Mexicopaper_analysis/2_ADFtest.R")
+
+# SVAR analysis. Uses Mex_W and Mex_d
+source("Mexicopaper_analysis/2_SVAR.R")
 
 # ARIMAX of 10yr and 1mo yield on Proportion of Foreign Ownership. Uses Mex_W
 source("Mexicopaper_analysis/2_ARIMAX.R")
