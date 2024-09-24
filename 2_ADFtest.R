@@ -9,25 +9,25 @@ subsamp_Index = cbind(Mex_w$Date <= as.Date("2011-12-31") & Mex_w$Date >= as.Dat
           Mex_w$Date <= as.Date("2015-12-31") & Mex_w$Date >= as.Date("2014-01-01"),
           Mex_w$Date <= as.Date("2013-12-31") & Mex_w$Date >= as.Date("2012-01-01"))
 
-Vars_SVAR = c("TIIE","MPTBA","GMXN10Y","MXN_USD")                                  #List of variables ADF test and later SVAR is to be run on
+Vars_ADF = c("TIIE","MPTBA","GMXN10Y","MXN_USD")                                  #List of variables ADF test is to be run on
 
 
 # Creating table to store results -----------------------------------------
 
-nvar = length(Vars_SVAR)                                                           #nvar and nsubsamp are used later and so storing as a variable is useful
+nvar = length(Vars_ADF)                                                           #nvar and nsubsamp are used later and so storing as a variable is useful
 nsubsamp = ncol(subsamp_Index)
 ADF_tab = matrix(NaN, nvar*2, nsubsamp*2)
 colnames(ADF_tab) = paste(c(rep("Jan2010_Dec2011",2),rep("Jan2014_Dec2015",2),
                       rep("Jan2012_Dec 2013",2)), rep(c("Lvl","1Diff"),3), sep = "_" )
 x = NaN
 for (Var in 1:nvar){
-  x = c(x,paste(rep(Vars_SVAR[Var],2), c("ADF","pValue"), sep = "_") )
+  x = c(x,paste(rep(Vars_ADF [Var],2), c("ADF","pValue"), sep = "_") )
 }
 rownames(ADF_tab) = x[-1]
 
 # Creating first differences ----------------------------------------------
 
-Mex_w_d = lapply(Mex_w[,Vars_SVAR], diff)                                          #lapply has to be used because diff() does not work on dartaframes
+Mex_w_d = lapply(Mex_w[,Vars_ADF ], diff)                                          #lapply has to be used because diff() does not work on dartaframes
 Mex_w_d = data.frame(Date = Mex_w$Date[-1], Mex_w_d)
 
 # Running ADF test and storing results-------------------------------------
@@ -36,9 +36,9 @@ Mex_w_d = data.frame(Date = Mex_w$Date[-1], Mex_w_d)
 
 for (subsamp in  1:nsubsamp){                                                            #Comparing speeds and reading online, for loop are not any slower (and sometimes faster) than lapply
   for (Var in 1:nvar){
-    adf_l = summary(ur.df(Mex_w[subsamp_Index[,subsamp],Vars_SVAR[Var]], type = "none", 
+    adf_l = summary(ur.df(Mex_w[subsamp_Index[,subsamp],Vars_ADF [Var]], type = "none", 
                           selectlags = "AIC"))
-    adf_d = summary(ur.df(Mex_w_d[subsamp_Index[,subsamp],Vars_SVAR[Var]], type = "none",
+    adf_d = summary(ur.df(Mex_w_d[subsamp_Index[,subsamp],Vars_ADF [Var]], type = "none",
                           selectlags = "AIC"))
     ADF_tab[c(2*Var - 1,2* Var),(2*subsamp - 1)] = 
       adf_l@testreg$coefficients[1,c("t value", "Pr(>|t|)")]
@@ -56,7 +56,7 @@ for (subsamp in  1:nsubsamp){                                                   
 
 # Removing excess variables -----------------------------------------------
 
- rm(x,nvar,nsubsamp, adf_l, adf_d, subsamp, Var)
+ rm(x,nvar,nsubsamp, Vars_ADF, adf_l, adf_d, subsamp, Var)
 
 
 
