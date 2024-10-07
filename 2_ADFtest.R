@@ -9,7 +9,8 @@ Index = cbind(Mex_w$Date <= as.Date("2011-12-31") & Mex_w$Date >= as.Date("2010-
           Mex_w$Date <= as.Date("2015-12-31") & Mex_w$Date >= as.Date("2014-01-01"),
           Mex_w$Date <= as.Date("2013-12-31") & Mex_w$Date >= as.Date("2012-01-01"))
 
-Vars_ADF = c("TIIE","MPTBA","GMXN10Y","MXN_USD")                                  #List of variables ADF test is to be run on
+Vars_ADF = c("TIIE","MPTBA", "MPTBF", "GMXN01Y", "GMXN02Y", "GMXN05Y","GMXN10Y",
+             "GMXN30Y", "MXN_USD")                                  #List of variables ADF test is to be run on
 
 
 # Creating table to store results -----------------------------------------
@@ -36,15 +37,26 @@ Mex_w_d = data.frame(Date = Mex_w$Date[-1], Mex_w_d)
 
 for (subsamp in  1:nsubsamp){                                                            #Comparing speeds and reading online, for loop are not any slower (and sometimes faster) than lapply
   for (Var in 1:nvar){
-    adf_l = summary(ur.df(Mex_w[Index[,subsamp],Vars_ADF [Var]], type = "none", 
-                          selectlags = "AIC"))
-    adf_d = summary(ur.df(Mex_w_d[Index[,subsamp],Vars_ADF [Var]], type = "none",
-                          selectlags = "AIC"))
-    ADF_tab[c(2*Var - 1,2* Var),(2*subsamp - 1)] = 
-      adf_l@testreg$coefficients[1,c("t value", "Pr(>|t|)")]
-    ADF_tab[c(2*Var - 1,2* Var),(2*subsamp )] = 
-      adf_d@testreg$coefficients[1,c("t value", "Pr(>|t|)")]
-    }}
+    level_dat = Mex_w[Index[,subsamp],Vars_ADF [Var]]
+    diff_dat = Mex_w_d[Index[,subsamp],Vars_ADF [Var]]
+    
+    if (all(!is.na(level_dat)) ){
+      adf_l = summary(ur.df(level_dat, type = "none",selectlags = "AIC"))
+      ADF_tab[c(2*Var - 1,2* Var),(2*subsamp - 1)] = 
+        adf_l@testreg$coefficients[1,c("t value", "Pr(>|t|)")]
+    }else{
+      ADF_tab[c(2*Var - 1,2* Var),(2*subsamp - 1)] = NaN
+    }
+    
+    if (all(!is.na(diff_dat)) ){
+      adf_d = summary(ur.df(diff_dat, type = "none", selectlags = "AIC"))
+      ADF_tab[c(2*Var - 1,2* Var),(2*subsamp )] =
+        adf_d@testreg$coefficients[1,c("t value", "Pr(>|t|)")]
+    }else{
+      ADF_tab[c(2*Var - 1,2* Var),(2*subsamp )] = NaN
+    }
+  }
+}
 
 
 #this was used to determine the type of ADF test to be used
