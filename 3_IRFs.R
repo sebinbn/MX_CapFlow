@@ -1,94 +1,87 @@
 # this code uses the list 'IRFs' created by 2_SVAR and plots the IRFs for various
 # period and variable specifications
 
-# Function to create data needed for IRF as data frame -------------------
+# Function to create IRF -------------------
 
-irfDataPrep = function(samp_num){
-  if(samp_num <= 3){
-    irfDat = data.frame(Week = 0:(nrow(IRFs[[samp_num]]$irf$MPTBA) - 1),
-                        IRF = IRFs[[samp_num]]$irf$MPTBA[,'GMXN10Y'],
-                        Upper_CI = IRFs[[samp_num]]$Upper$MPTBA[,'GMXN10Y'],
-                        Lower_CI = IRFs[[samp_num]]$Lower$MPTBA[,'GMXN10Y'])
-  }else if(samp_num >= 7){
-    irfDat = data.frame(Week = 0:(nrow(IRFs[[samp_num]]$irf$TIIE) - 1),
-                        IRF = IRFs[[samp_num]]$irf$TIIE[,'MPTBA'],
-                        Upper_CI = IRFs[[samp_num]]$Upper$TIIE[,'MPTBA'],
-                        Lower_CI = IRFs[[samp_num]]$Lower$TIIE[,'MPTBA'])
+
+irfCreate = function(samp_num){
+  if ( all(is.na(IRFs[[samp_num]])) ){
+    print('No analysis had been done owing to missing value')
+    return()
   }else{
-    irfDat = data.frame(Week = 0:(nrow(IRFs[[samp_num]]$irf$TIIE) - 1),
-                        IRF = IRFs[[samp_num]]$irf$TIIE[,'GMXN10Y'],
-                        Upper_CI = IRFs[[samp_num]]$Upper$TIIE[,'GMXN10Y'],
-                        Lower_CI = IRFs[[samp_num]]$Lower$TIIE[,'GMXN10Y'])
+    response = c("MPTBF", "GMXN01Y","GMXN02Y", "GMXN05Y", "GMXN10Y", "GMXN30Y")
+    if(samp_num <= 18){
+      Resp = response[ceiling(samp_num/3)]
+      irfDat = data.frame(Week = 0:(nrow(IRFs[[samp_num]]$irf$MPTBA) - 1),
+                          IRF = IRFs[[samp_num]]$irf$MPTBA[,Resp],
+                          Upper_CI = IRFs[[samp_num]]$Upper$MPTBA[,Resp],
+                          Lower_CI = IRFs[[samp_num]]$Lower$MPTBA[,Resp])
+    }else if(samp_num >= 22){
+      irfDat = data.frame(Week = 0:(nrow(IRFs[[samp_num]]$irf$TIIE) - 1),
+                          IRF = IRFs[[samp_num]]$irf$TIIE[,'MPTBA'],
+                          Upper_CI = IRFs[[samp_num]]$Upper$TIIE[,'MPTBA'],
+                          Lower_CI = IRFs[[samp_num]]$Lower$TIIE[,'MPTBA'])
+    }else{
+      irfDat = data.frame(Week = 0:(nrow(IRFs[[samp_num]]$irf$TIIE) - 1),
+                          IRF = IRFs[[samp_num]]$irf$TIIE[,'GMXN10Y'],
+                          Upper_CI = IRFs[[samp_num]]$Upper$TIIE[,'GMXN10Y'],
+                          Lower_CI = IRFs[[samp_num]]$Lower$TIIE[,'GMXN10Y'])
+    }
+    return(irfPlot(irfDat,samp_num))
   }
+  
 }
 
 # Function to plot IRF using ggplot ---------------------------------------
 
-irfPlot = function(Data, Impulse, Response){
+irfPlot = function(Data, samp_num){
+  # Identify response variable name from sample number
+  response = c("6mo", "01y","02y", "05y", "10y", "30y", "10y","1mo")
+  Response = c("6 mo", "1 yr","2 yr", "5 yr", "10 yr", "30 yr", "10 yr","1 mo")
+  Resp = Response[ceiling(samp_num/3)]
+  resp = response[ceiling(samp_num/3)]
+  
+  # Identify impulse variable name from sample number
+  if(samp_num <= 18){
+    implse = "1mo"
+    Implse = "1 mo"
+  }else{
+    implse = "ON"
+    Implse = "Overnight"
+  }
+  
+  # Identify period from sample number
+  if (samp_num %% 3 == 0){
+    period = '2010-11'
+  }else if (samp_num %% 3 == 1){
+    period = '2012-13'
+  }else if (samp_num %% 3 == 2){
+    period = '2014-15'
+  }
+  
   IRFPlot = ggplot(Data, aes(x = Week)) +
     geom_line(aes(y = IRF), color = "black", linewidth = 1.2) +                     # Main IRF line
     geom_ribbon(aes(ymin = Lower_CI, ymax = Upper_CI), fill = 'blue', alpha = 0.3) +  # CI band
     geom_hline(yintercept = 0, color = "red", linetype = "dashed", linewidth = 1) +  # Zero line
-    labs(title = paste("Impulse Response to", Impulse), x = "Week",
-         y = paste('\u0394', Response) ) +
+    labs(title = paste("Impulse Response to", Implse, "yield"), x = "Week",
+         y = paste('\u0394', Resp, "yield") ) +
     theme_minimal() +
     theme(axis.title.x = element_text(size = 14),
           axis.title.y = element_text(size = 14),
           axis.text = element_text(size = 12))
   path = substr(getwd(), 1, nchar(getwd()) - 13)                                  # going up 1 directory
-  path = paste(path,'Paper/Image_fromCode/',cntry, pathEnd,
-               ".png", sep = "")
+  FileName = paste(period,implse,resp, sep = "_")
+  path = paste(path,'Paper/Image_fromCode/',FileName,".png", sep = "")
   ggsave(filename = path, plot = IRFPlot, width = 7, height = 5, dpi = 300)
+  return(IRFPlot)
 }
 
 
 # Creating plots ----------------------------------------------------------
 
+IRF_GGplot = list()
+for (i in 1:length(IRFs)){
+  irfpic = irfCreate(i)
+  IRF_GGplot = c(IRF_GGplot, list(irfpic) ) 
+}
 
-## 1mo yield as short rate -------------------------------------------------
-### 2010-11  -----------------------
-irfDat = irfDataPrep(1)
-IRF_1011_1mo = irfPlot(irfDat, '1 mo yield', '10 yr yield')
-IRF_1011_1mo
-
-### 2012-13 ----------------------------------------------
-irfDat = irfDataPrep(2)
-IRF_1213_1mo = irfPlot(irfDat, '1 mo yield', '10 yr yield')
-IRF_1213_1mo
-
-### 2014-15 ----------------------------------------------
-irfDat = irfDataPrep(3)
-IRF_1415_1mo = irfPlot(irfDat, '1 mo yield', '10 yr yield')
-IRF_1415_1mo
-
-## TIIE as short rate -------------------------------------------------
-## 2010-11 -----------------------
-irfDat = irfDataPrep(4)
-IRF_1011_ON = irfPlot(irfDat, 'Overnight rate', '10 yr yield')
-IRF_1011_ON
-
-## 2012-13 ---------------------------------------------
-irfDat = irfDataPrep(5)
-IRF_1213_ON = irfPlot(irfDat, 'Overnight rate', '10 yr yield')
-IRF_1213_ON
-
-## 2014-15 ----------------------------------------------
-irfDat = irfDataPrep(6)
-IRF_1415_ON = irfPlot(irfDat, 'Overnight rate', '10 yr yield')
-IRF_1415_ON
-
-## TIIE as short rate, 1mo as long --------------------------------------------
-## 2010-11  -----------------------
-irfDat = irfDataPrep(7)
-IRF_1011_ON1mo = irfPlot(irfDat, 'Overnight rate', '1 mo yield')
-IRF_1011_ON1mo
-
-## 2012-13 ----------------------------------------------
-irfDat = irfDataPrep(8)
-IRF_1213_ON1mo = irfPlot(irfDat, 'Overnight rate', '1 mo yield')
-IRF_1213_ON1mo
-
-## 2014-15 ----------------------------------------------
-irfDat = irfDataPrep(9)
-IRF_1415_ON1mo = irfPlot(irfDat, 'Overnight rate', '1 mo yield')
-IRF_1415_ON1mo

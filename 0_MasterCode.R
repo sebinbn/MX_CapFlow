@@ -13,7 +13,7 @@ library(zoo)
 
 
 #setwd("C:/Users/sbnidhir/OneDrive - University Of Houston/Research/MP transmission/Data_Analysis")
-setwd("C:/Users/sebin/OneDrive - University Of Houston/Research/MP transmission/Data_Analysis")
+#setwd("C:/Users/sebin/OneDrive - University Of Houston/Research/MP transmission/Data_Analysis")
 setwd('../')                                                                      #goes up one level to Data_Analysis folder
 rm(list = ls())
 
