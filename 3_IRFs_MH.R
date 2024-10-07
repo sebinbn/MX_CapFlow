@@ -3,6 +3,19 @@
 
 # Function to create data needed for IRF as data frame -------------------
 
+IRF = c()
+Upper_CI = c()
+Lower_CI = c()
+i = 2
+for(samp_num in 1:8){
+  IRF = c(IRF, IRFs[[samp_num]]$irf$MPTBA[i,'GMXN10Y'])
+  Upper_CI = c(Upper_CI, IRFs[[samp_num]]$Upper$MPTBA[i,'GMXN10Y'])
+  Lower_CI = c(Lower_CI, IRFs[[samp_num]]$Lower$MPTBA[i,'GMXN10Y'])
+}
+
+irfDat = data.frame(Year = names(IRFs),IRF = IRF,Upper_CI = Upper_CI ,
+                    Lower_CI = Lower_CI)
+
 irfDataPrep = function(samp_num){
   if(samp_num <= 3){
     irfDat = data.frame(Week = 0:(nrow(IRFs[[samp_num]]$irf$MPTBA) - 1),
@@ -25,20 +38,21 @@ irfDataPrep = function(samp_num){
 # Function to plot IRF using ggplot ---------------------------------------
 
 irfPlot = function(Data, Impulse, Response){
-  IRFPlot = ggplot(Data, aes(x = Week)) +
-    geom_line(aes(y = IRF), color = "black", linewidth = 1.2) +                     # Main IRF line
-    geom_ribbon(aes(ymin = Lower_CI, ymax = Upper_CI), fill = 'blue', alpha = 0.3) +  # CI band
+  IRFPlot = ggplot(Data, aes(x = Year)) +
+    geom_line(aes(y = IRF), color = "black", linewidth = 1.2, group =1) +                     # Main IRF line
+    geom_ribbon(aes(ymin = Lower_CI, ymax = Upper_CI), fill = 'blue', 
+                alpha = 0.3, group = 1) +  # CI band
     geom_hline(yintercept = 0, color = "red", linetype = "dashed", linewidth = 1) +  # Zero line
-    labs(title = paste("Impulse Response to", Impulse), x = "Week",
+    labs(title = paste("Impulse Response to", Impulse), x = "Period",
          y = paste('\u0394', Response) ) +
     theme_minimal() +
     theme(axis.title.x = element_text(size = 14),
           axis.title.y = element_text(size = 14),
           axis.text = element_text(size = 12))
-  path = substr(getwd(), 1, nchar(getwd()) - 13)                                  # going up 1 directory
-  path = paste(path,'Paper/Image_fromCode/',cntry, pathEnd,
-               ".png", sep = "")
-  ggsave(filename = path, plot = IRFPlot, width = 7, height = 5, dpi = 300)
+  # path = substr(getwd(), 1, nchar(getwd()) - 13)                                  # going up 1 directory
+  # path = paste(path,'Paper/Image_fromCode/',cntry, pathEnd,
+  #              ".png", sep = "")
+  # ggsave(filename = path, plot = IRFPlot, width = 7, height = 5, dpi = 300)
 }
 
 
