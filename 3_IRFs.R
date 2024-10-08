@@ -51,11 +51,11 @@ irfPlot = function(Data, samp_num){
   }
   
   # Identify period from sample number
-  if (samp_num %% 3 == 0){
+  if (samp_num %% 3 == 1){
     period = '2010-11'
-  }else if (samp_num %% 3 == 1){
-    period = '2012-13'
   }else if (samp_num %% 3 == 2){
+    period = '2012-13'
+  }else if (samp_num %% 3 == 0){
     period = '2014-15'
   }
   
@@ -85,3 +85,4 @@ for (i in 1:length(IRFs)){
   IRF_GGplot = c(IRF_GGplot, list(irfpic) ) 
 }
 
+a = irfCreate(10)
