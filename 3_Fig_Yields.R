@@ -47,19 +47,40 @@ ggplot(Mex_long, aes(x = Date, y = value, color = variable)) +
 
 
 # Fig 3 - comparing short term yields -------------------------------------
-Mex_long <- melt(Mex_d[,c("Date","Tgt_rate","TIIE", "MPTBA")], id.vars = "Date")
+Date_sub = Mex_w$Date <= as.Date('2015-12-31') & Mex_w$Date >= as.Date('2010-01-01')
+Mex_long <- melt(Mex_w[Date_sub,c("Date","Tgt_rate","TIIE", "MPTBA")],
+                 id.vars = "Date")
 
 ggplot(Mex_long, aes(x = Date, y = value, color = variable)) +
   geom_line(linewidth = 1.25) +
-  labs(y = "Yield on Mexican govt bonds (in %)", x = element_blank()) +
+  labs(y = "Interest rates (in %)", x = element_blank()) +
   scale_x_date(date_breaks = "2 year", date_labels = "%Y") +
   scale_color_discrete(labels = c("Policy rate", "TIIE", "1 month yield")) + #scale_color_discrete(labels = c("Overnight yield", "10 year yield")) +
-  geom_rect(aes(xmin=as.Date("2010-01-01"), xmax=as.Date("2011-12-31"),ymin=-Inf,ymax=Inf),
-            fill = NA, alpha= 0.01, color ='red', linewidth = 1.2)+
-  geom_rect(aes(xmin=as.Date("2014-01-01"), xmax=as.Date("2015-12-31"),ymin=-Inf,ymax=Inf),
-            fill = NA, alpha= 0.01, color = 'red', linewidth = 1.2)+
+  geom_vline(xintercept = as.Date("2011-12-31"), color = 'black', 
+             linetype = "dashed", linewidth = 1.2) +
+  geom_vline(xintercept = as.Date("2014-01-01"), color = 'black', 
+             linetype = "dashed", linewidth = 1.2) +
   theme_minimal()+
-  theme(legend.position = c(0.7, 0.9),legend.title = element_blank(),
+  theme(legend.position = c(0.8, 0.9),legend.title = element_blank(),
+        legend.text = element_text(size = 14),
+        legend.background = element_rect(linetype="solid",colour ="darkblue"),
+        axis.text = element_text(size = 14), axis.title = element_text(size = 15))
+
+# Fig 4 - Depicting slope -------------------------------------
+
+Mex_w$`10y-TIIE` = Mex_w$GMXN10Y - Mex_w$TIIE
+Mex_w$`10y-Tgt` = Mex_w$GMXN10Y - Mex_w$Tgt_rate
+Mex_w$`10y-1mo` = Mex_w$GMXN10Y - Mex_w$MPTBA
+Mex_long <- melt(Mex_w[,c("Date" ,"10y-Tgt","10y-TIIE", "10y-1mo")],id.vars = "Date")
+
+ggplot(Mex_long, aes(x = Date, y = value, color = variable)) +
+  geom_line(linewidth = 1.25) +
+  labs(y = "Slopes", x = element_blank()) +
+  scale_x_date(date_breaks = "2 year", date_labels = "%Y") +
+  scale_color_discrete(labels = c("10yr - Policy rate", "10yr - TIIE", "10yr - 1 mo")) + #scale_color_discrete(labels = c("Overnight yield", "10 year yield")) +
+  geom_hline(yintercept = 0, color = 'red', linetype = "dashed", linewidth = 1.2) +
+  theme_minimal()+
+  theme(legend.position = c(0.8, 0.9),legend.title = element_blank(),
         legend.text = element_text(size = 14),
         legend.background = element_rect(linetype="solid",colour ="darkblue"),
         axis.text = element_text(size = 14), axis.title = element_text(size = 15))

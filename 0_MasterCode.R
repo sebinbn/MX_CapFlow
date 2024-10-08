@@ -81,3 +81,5 @@ Yield_plot
 
 source("Mexicopaper_analysis/3_Fig_barchart.R")                                   # barchart showing change in proportion
 barchart                                                                          # plot doesn't show up if in another code. So, plot is saved as barchart and then called to be displayed here. 
+
+source("Mexicopaper_analysis/3_IRFs.R") 
