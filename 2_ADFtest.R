@@ -5,9 +5,10 @@
 library(urca)         #for ur.df
 
 # Creating date indices for subsetting ------------------------------------
-Index = cbind(Mex_w$Date <= as.Date("2011-12-31") & Mex_w$Date >= as.Date("2010-01-01"),
-          Mex_w$Date <= as.Date("2015-12-31") & Mex_w$Date >= as.Date("2014-01-01"),
-          Mex_w$Date <= as.Date("2013-12-31") & Mex_w$Date >= as.Date("2012-01-01"))
+Index = cbind(
+  Mex_w$Date <= as.Date("2011-12-31") & Mex_w$Date >= as.Date("2010-01-01"),
+  Mex_w$Date <= as.Date("2013-12-31") & Mex_w$Date >= as.Date("2012-01-01"),
+  Mex_w$Date <= as.Date("2015-12-31") & Mex_w$Date >= as.Date("2014-01-01"))
 
 Vars_ADF = c("TIIE","MPTBA", "MPTBF", "GMXN01Y", "GMXN02Y", "GMXN05Y","GMXN10Y",
              "GMXN30Y", "MXN_USD")                                  #List of variables ADF test is to be run on
@@ -18,8 +19,9 @@ Vars_ADF = c("TIIE","MPTBA", "MPTBF", "GMXN01Y", "GMXN02Y", "GMXN05Y","GMXN10Y",
 nvar = length(Vars_ADF)                                                           #nvar and nsubsamp are used later and so storing as a variable is useful
 nsubsamp = ncol(Index)
 ADF_tab = matrix(NaN, nvar*2, nsubsamp*2)
-colnames(ADF_tab) = paste(c(rep("Jan2010_Dec2011",2),rep("Jan2014_Dec2015",2),
-                      rep("Jan2012_Dec 2013",2)), rep(c("Lvl","1Diff"),3), sep = "_" )
+colnames(ADF_tab) = paste(c(rep("Jan2010_Dec2011",2), rep("Jan2012_Dec 2013",2),
+                            rep("Jan2014_Dec2015",2)),
+                          rep(c("Lvl","1Diff"),3), sep = "_" )
 x = NaN
 for (Var in 1:nvar){
   x = c(x,paste(rep(Vars_ADF [Var],2), c("ADF","pValue"), sep = "_") )
