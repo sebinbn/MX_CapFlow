@@ -1,10 +1,31 @@
-#This code creates 2 figures of which 1 is used in the paper:
+#This code creates few figures of which 1 is used in the paper:
 # 1. Plotting the 1mo and 10yr yield over time from weekly data. (used in paper)
 # 2. Plotting the 1mo and 10yr yield over time from daily data.
 # 3. Plotting various short term yields over time from weekly data for comparison.
 
 
-# Fig 1 - 1mo and 10yr from weekly data -----------------------------------
+# Fig 1 - TIIE,1mo and 10yr from weekly data -----------------------------------
+
+Mex_long <- melt(Mex_w[,c("Date","TIIE","MPTBA","GMXN10Y")], id.vars = "Date")
+
+Yield_plot = ggplot(Mex_long, aes(x = Date, y = value, color = variable)) +
+  geom_line(linewidth = 1.25) +
+  labs(y = "Yield on Mexican govt bonds (in %)", x = element_blank()) +
+  scale_x_date(date_breaks = "2 year", date_labels = "%Y") +
+  scale_color_discrete(labels = c( "Overnight rate", "1 month yield", "10 year yield")) + 
+  geom_rect(aes(xmin=as.Date("2010-01-01"), xmax=as.Date("2011-12-31"),ymin=-Inf,ymax=Inf),
+            fill = NA, alpha= 0.01, color ='red', linewidth = 1.2)+
+  geom_rect(aes(xmin=as.Date("2012-01-01"), xmax=as.Date("2013-12-31"),ymin=-Inf,ymax=Inf),
+            fill = NA, alpha= 0.01, color = 'green', linewidth = 1.2)+
+  geom_rect(aes(xmin=as.Date("2014-01-01"), xmax=as.Date("2015-12-31"),ymin=-Inf,ymax=Inf),
+            fill = NA, alpha= 0.01, color = 'green', linewidth = 1.2)+
+  theme_minimal()+
+  theme(legend.position = c(0.7, 0.9),legend.title = element_blank(),
+        legend.text = element_text(size = 14),
+        legend.background = element_rect(linetype="solid",colour ="darkblue"),
+        axis.text = element_text(size = 14), axis.title = element_text(size = 15))
+
+# Fig 2 - 1mo and 10yr from weekly data -----------------------------------
 
 Mex_long <- melt(Mex_w[,c("Date","MPTBA","GMXN10Y")], id.vars = "Date")
 
