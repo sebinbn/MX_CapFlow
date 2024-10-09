@@ -75,7 +75,7 @@ for (sub_ in subsamp){
       
       samp_VAR = VAR(samp, type = "none")
       samp_SVAR = SVAR(samp_VAR,Bmat = b)
-      samp_IRF = irf(samp_SVAR, impulse = names(samp)[1], n.ahead = 8,runs = 1000,
+      samp_IRF = irf(samp_SVAR, impulse = names(samp)[1], n.ahead = 6,runs = 1000,
                      ci = 0.68)
       
       #Normalising IRFS to be responses to 1 unit shock
