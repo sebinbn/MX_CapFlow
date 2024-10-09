@@ -12,10 +12,14 @@ irfCreate = function(samp_num){
     response = c("MPTBF", "GMXN01Y","GMXN02Y", "GMXN05Y", "GMXN10Y", "GMXN30Y")
     if(samp_num <= 18){
       Resp = response[ceiling(samp_num/3)]
-      irfDat = data.frame(Week = 0:(nrow(IRFs[[samp_num]]$irf$MPTBA) - 1),
-                          IRF = IRFs[[samp_num]]$irf$MPTBA[,Resp],
-                          Upper_CI = IRFs[[samp_num]]$Upper$MPTBA[,Resp],
-                          Lower_CI = IRFs[[samp_num]]$Lower$MPTBA[,Resp])
+      # irfDat = data.frame(Week = 0:(nrow(IRFs[[samp_num]]$irf$MPTBA) - 1),
+      #                     IRF = IRFs[[samp_num]]$irf$MPTBA[,Resp],
+      #                     Upper_CI = IRFs[[samp_num]]$Upper$MPTBA[,Resp],
+      #                     Lower_CI = IRFs[[samp_num]]$Lower$MPTBA[,Resp])
+      irfDat = data.frame(Week = 0:(nrow(IRFs[[samp_num]]$irf$TIIE) - 1),
+                          IRF = IRFs[[samp_num]]$irf$TIIE[,Resp],
+                          Upper_CI = IRFs[[samp_num]]$Upper$TIIE[,Resp],
+                          Lower_CI = IRFs[[samp_num]]$Lower$TIIE[,Resp])
     }else if(samp_num >= 22){
       irfDat = data.frame(Week = 0:(nrow(IRFs[[samp_num]]$irf$TIIE) - 1),
                           IRF = IRFs[[samp_num]]$irf$TIIE[,'MPTBA'],
@@ -42,13 +46,15 @@ irfPlot = function(Data, samp_num){
   resp = response[ceiling(samp_num/3)]
   
   # Identify impulse variable name from sample number
-  if(samp_num <= 18){
-    implse = "1mo"
-    Implse = "1 mo"
-  }else{
-    implse = "ON"
-    Implse = "Overnight"
-  }
+  # if(samp_num <= 18){
+  #   implse = "1mo"
+  #   Implse = "1 mo"
+  # }else{
+  #   implse = "ON"
+  #   Implse = "Overnight"
+  # }
+  implse = "ON"
+  Implse = "Overnight"
   
   # Identify period from sample number
   if (samp_num %% 3 == 1){
@@ -63,6 +69,7 @@ irfPlot = function(Data, samp_num){
     geom_line(aes(y = IRF), color = "black", linewidth = 1.2) +                     # Main IRF line
     geom_ribbon(aes(ymin = Lower_CI, ymax = Upper_CI), fill = 'blue', alpha = 0.3) +  # CI band
     geom_hline(yintercept = 0, color = "red", linetype = "dashed", linewidth = 1) +  # Zero line
+    scale_y_continuous(limits = c(-0.4, 0.85), breaks = seq(-0.2, 0.8, by = 0.1)) +
     labs(title = paste("Impulse Response to", Implse, "yield"), x = "Week",
          y = paste('\u0394', Resp, "yield") ) +
     theme_minimal() +
@@ -72,7 +79,7 @@ irfPlot = function(Data, samp_num){
   path = substr(getwd(), 1, nchar(getwd()) - 13)                                  # going up 1 directory
   FileName = paste(period,implse,resp, sep = "_")
   path = paste(path,'Paper/Image_fromCode/',FileName,".png", sep = "")
-  ggsave(filename = path, plot = IRFPlot, width = 7, height = 5, dpi = 300)
+  ggsave(filename = path, plot = IRFPlot, width = 5, height = 4, dpi = 300)
   return(IRFPlot)
 }
 
@@ -84,5 +91,5 @@ for (i in 1:length(IRFs)){
   irfpic = irfCreate(i)
   IRF_GGplot = c(IRF_GGplot, list(irfpic) ) 
 }
-
-a = irfCreate(10)
+irfpic = irfCreate(14)
+irfpic

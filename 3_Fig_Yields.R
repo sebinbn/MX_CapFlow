@@ -16,9 +16,7 @@ Yield_plot = ggplot(Mex_long, aes(x = Date, y = value, color = variable)) +
   geom_rect(aes(xmin=as.Date("2010-01-01"), xmax=as.Date("2011-12-31"),ymin=-Inf,ymax=Inf),
             fill = NA, alpha= 0.01, color ='red', linewidth = 1.2)+
   geom_rect(aes(xmin=as.Date("2012-01-01"), xmax=as.Date("2013-12-31"),ymin=-Inf,ymax=Inf),
-            fill = NA, alpha= 0.01, color = 'green', linewidth = 1.2)+
-  geom_rect(aes(xmin=as.Date("2014-01-01"), xmax=as.Date("2015-12-31"),ymin=-Inf,ymax=Inf),
-            fill = NA, alpha= 0.01, color = 'green', linewidth = 1.2)+
+            fill = NA, alpha= 0.01, color = 'darkgreen', linewidth = 1.2)+
   theme_minimal()+
   theme(legend.position = c(0.7, 0.9),legend.title = element_blank(),
         legend.text = element_text(size = 14),

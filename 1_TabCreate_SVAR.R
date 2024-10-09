@@ -49,6 +49,15 @@ for(i in 1:length(Sun)){
 }
 colMeans(is.na(Mex_w))
 
+#removing NAs in 1yr and 5yr as these are immediately necessary
+Mex_w$Date[is.na(Mex_w$GMXN05Y)]
+NA_index = which(Mex_w$Date == as.Date('2014-11-23'))
+Mex_w[NA_index, 'GMXN05Y'] = mean(Mex_w[NA_index + c(-1,1), 'GMXN05Y'])
+
+Mex_w$Date[Mex_w$Date >= as.Date('2008-04-01') & is.na(Mex_w$GMXN01Y)]
+NA_index = which(Mex_w$Date == as.Date('2011-01-02'))
+Mex_w[NA_index, 'GMXN01Y'] = mean(Mex_w[NA_index + c(-1,1), 'GMXN01Y'])
+
 write.csv(Mex_w, "Mexicopaper_Data/Mex_weekly.csv", row.names = F)                                 #Exporting weekly data
 
 # Removing unused variables -----------------------------------------------
