@@ -1,7 +1,8 @@
-# This code uses Own_Data to create 3 figures.
+# This code uses Own_Data to create 4 figures.
 # 1. A time plot showing varying shares of ownership over time used in paper.
-# 2. Above time plot with all available data. (not used in paper)
-# 3. Two time plots showing ownership proportion in the two subsamples (not used in paper)
+# 2. Above plot with years of analysis marked.
+# 3. Above time plot with all available data. (not used in paper)
+# 4. Two time plots showing ownership proportion in the two subsamples (not used in paper)
 
 
 # Plot: Share over time ---------------------------------------------------
@@ -14,9 +15,30 @@ own_long = melt(Own_Data[Own_Data$Date <= as.Date("2023-12-31") &
                 id.vars = "Date")
 OwnShare_plot = ggplot(data = own_long, aes(x = Date, y = value, color = variable)) +
   geom_area(aes(fill = variable)) +
-  scale_fill_discrete(labels = c("Others","Banxico","Banks","Invst. funds", "Insurance Co.",
-                                 "Pension funds","Non-residents") ) +
-  guides(color = "none") +
+  scale_fill_brewer(labels = c("Others","Banxico","Banks","Invst. funds",
+                               "Insurance Co.","Pension funds","Non-residents"),
+                    palette = "Set3") +
+  guides(color = "none", fill = guide_legend(reverse = TRUE)) +
+  labs(y = 'Ownership share in govt bonds O/S', x = element_blank())+ 
+  scale_x_date(date_labels = '%Y', date_breaks = "2 year")+
+  theme(axis.text = element_text(size = 14), axis.title = element_text(size = 14),
+        legend.title = element_blank(),legend.text = element_text(size = 14),
+        legend.position = "bottom")
+
+# Plot: Share over time ---------------------------------------------------
+
+OwnShare_plot1 = ggplot(data = own_long, aes(x = Date, y = value, color = variable)) +
+  geom_area(aes(fill = variable)) +
+  scale_fill_brewer(labels = c("Others","Banxico","Banks","Invst. funds",
+                               "Insurance Co.","Pension funds","Non-residents"),
+                    palette = "Set3") +
+  guides(color = "none", fill = guide_legend(reverse = TRUE)) +
+  geom_rect(aes(xmin=as.Date("2010-01-01"), xmax=as.Date("2011-12-21"),
+                ymin=-Inf,ymax=Inf),
+            fill = NA, alpha= 0.01, color ='red', linewidth = 1.2)+
+  geom_rect(aes(xmin=as.Date("2012-01-11"), xmax=as.Date("2013-12-31"),
+                ymin=-Inf,ymax=Inf),
+            fill = NA, alpha= 0.01, color = 'darkgreen', linewidth = 1.2)+
   labs(y = 'Ownership share in govt bonds O/S', x = element_blank())+ 
   scale_x_date(date_labels = '%Y', date_breaks = "2 year")+
   theme(axis.text = element_text(size = 14), axis.title = element_text(size = 14),
