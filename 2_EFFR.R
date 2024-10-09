@@ -19,3 +19,13 @@ for(i in 1:length(Sun)){
   a = na.omit(Week_Data[,2])
   EFFR_w[i,2] = if(length(a) != 0) tail(a,1) else NA
 } 
+
+
+# Checking Relevance ------------------------------------------------------
+
+EFFR_w$F_Own_p = Mex_w$F_Own_p
+summary(lm(F_Own_p ~ EFFR, data = EFFR_w))
+
+EFFR_long = melt(EFFR_w, id.vars = "Date")
+ggplot( data = EFFR_long, aes(x = Date, y = value, color = variable)) +
+  geom_line(linewidth = 1.25)
