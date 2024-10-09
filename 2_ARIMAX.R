@@ -21,12 +21,14 @@ summary(ur.df(diff(Mex_w$F_Own_p), type = "none"))                              
 
 # Estimating ARIMAX model --------------------------------------------------
 
-Model_10y = Arima(Mex_w$GMXN10Y, order = c(1,1,0), xreg = Mex_w$F_Own_p )
+Model_10y = Arima(Mex_w$GMXN10Y, order = c(1,1,0), xreg = Mex_w$F_Own_p*100 )
 Model_10y
 (1-pnorm(abs(Model_10y$coef)/sqrt(diag(Model_10y$var.coef))))*2                 #calculating p-value
 Model_10y$nobs
 
-Model_1mo = Arima(Mex_w$MPTBA, order = c(1,1,1), xreg = Mex_w$F_Own_p )
+# Although AIC suggested ARIMA(1,1,1), I use ARIMA(1,1,0) because the coefficients
+# have similar magnitude and opposite signs indicating spurious regression
+Model_1mo = Arima(Mex_w$MPTBA, order = c(1,1,0), xreg = Mex_w$F_Own_p*100 )
 Model_1mo
 (1-pnorm(abs(Model_1mo$coef)/sqrt(diag(Model_1mo$var.coef))))*2                 #calculating p-value
 Model_1mo$nobs
