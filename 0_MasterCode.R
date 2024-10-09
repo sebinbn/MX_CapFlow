@@ -59,6 +59,8 @@ source("Mexicopaper_analysis/2_ADFtest.R")
 
 # SVAR analysis. Uses Mex_W and Mex_d
 source("Mexicopaper_analysis/2_SVAR.R")
+source("Mexicopaper_analysis/2_SVAR_TIIE.R")
+source("Mexicopaper_analysis/2_SVAR_Mh.R")
 
 # ARIMAX of 10yr and 1mo yield on Proportion of Foreign Ownership. Uses Mex_W
 source("Mexicopaper_analysis/2_ARIMAX.R")
@@ -80,3 +82,5 @@ Yield_plot
 
 source("Mexicopaper_analysis/3_Fig_barchart.R")                                   # barchart showing change in proportion
 barchart                                                                          # plot doesn't show up if in another code. So, plot is saved as barchart and then called to be displayed here. 
+
+source("Mexicopaper_analysis/3_IRFs.R") 
