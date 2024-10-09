@@ -53,4 +53,7 @@ for(i in 1:length(Sun)){
 
 # Calculating bid-ask spread ----------------------------------------------
 
+NewCols = paste('BA' , c("TBA", "TBF", "01Y","02Y", "05Y", "10Y", "30Y") , sep= "_") 
+Liq_w[NewCols] = Liq_w[,2:8] - Liq_w[9:15]
 
+colSums(is.na(Liq_w)) #seeing number of missing values
