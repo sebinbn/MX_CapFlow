@@ -31,7 +31,7 @@ write.csv(Mex_d, "Mexicopaper_Data/Mex_Daily_MH.csv", row.names = F)            
 
 Sun  = seq(as.Date("2006-01-01"), as.Date("2023-12-31"), by = "7 days")            #creating vector of Sundays. 2006-01-01 was Sunday.
 
-Mex_w = data.frame(Date = Sun, Values = matrix(NA, length(Sun),
+Mex_w = data.frame(Date = Sun, Values = matrix(NaN, length(Sun),
                                                length(VarsExport) -1) )                #Initiating a dataframe
 colnames(Mex_w) = VarsExport
 
