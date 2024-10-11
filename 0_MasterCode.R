@@ -24,6 +24,10 @@ rm(list = ls())
 # data starts.
 source("Mexicopaper_analysis/1_DataCreate_BByield.R")
 
+# Uses data from Bloomberg in MXYC_1mo30y_PBAM.xlsx  and creates BBLiq (daily freq)
+# Liq_w (weekly frequency) which have bid-ask spreads. 
+source("Mexicopaper_analysis/1_DataCreate_BBLiq.R")
+
 # Uses data from Banxico in Mex_GD_ownership.xlsx and creates Own_Data with all
 # ownership data, Mex_FO with foreign ownership data. Also, exports Mex_FO. Creates
 # start_date_Own showing dates when data starts.
@@ -44,6 +48,8 @@ source("Mexicopaper_analysis/1_DataCreate_Mat.R")
 # daily data is retrieved from Bloomberg and then used to create the weekly
 # frequency data.
 source("Mexicopaper_analysis/1_TabCreate_SVAR.R")
+
+source("Mexicopaper_analysis/2_EFFR.R")
 
 # Analysis ----------------------------------------------------------------
 

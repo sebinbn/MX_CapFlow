@@ -34,7 +34,7 @@ Model_1mo
 Model_1mo$nobs
 
 
-# Estimating ARIMAX model on volatility -----------------------------------
+# Regressing liquidity impact-----------------------------------
 
 Liq_w$F_Own_p = Mex_w$F_Own_p
 
