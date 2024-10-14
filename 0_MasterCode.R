@@ -37,6 +37,10 @@ source("Mexicopaper_analysis/1_DataCreate_FO.R")
 # TIIE and MXN from this.
 source("Mexicopaper_analysis/1_DataCreate_TIIE_xrate.R")
 
+
+# Uses data in EFFR.csv to create EFFR (daily data) and EFFR_w (weekly data)
+source("Mexicopaper_analysis/1_DataCreate_EFFR.R")
+
 # Uses data from Banxico in Mex_GD_Maturity.xlsx to create Mex_mat. This is 
 # needed only for 1 plot
 source("Mexicopaper_analysis/1_DataCreate_Mat.R")
@@ -48,8 +52,6 @@ source("Mexicopaper_analysis/1_DataCreate_Mat.R")
 # daily data is retrieved from Bloomberg and then used to create the weekly
 # frequency data.
 source("Mexicopaper_analysis/1_TabCreate_SVAR.R")
-
-source("Mexicopaper_analysis/2_EFFR.R")
 
 # Analysis ----------------------------------------------------------------
 
@@ -70,6 +72,8 @@ source("Mexicopaper_analysis/2_SVAR_Mh.R")
 
 # ARIMAX of 10yr and 1mo yield on Proportion of Foreign Ownership. Uses Mex_W
 source("Mexicopaper_analysis/2_ARIMAX.R")
+
+source("Mexicopaper_analysis/2_EFFR_IV.R")
 
 # Creating figures --------------------------------------------------------
 
