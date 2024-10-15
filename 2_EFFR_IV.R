@@ -1,4 +1,7 @@
-# This file runs IV regressions
+# This file runs following IV regressions
+# 1. 2SLS regression on bid-ask spreads
+# 2. Using 1st stage fitted values as X in ARIMAX model on yields
+
 
 library(ivreg)
 library(forecast) #for using auto.arima and Arima
