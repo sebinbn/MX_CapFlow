@@ -1,6 +1,6 @@
 # This file runs ADF test on levels and first differences and the results are
 # stored in ADF_tab. The ADF test is run on weekly data using Mex_w. The first
-# differenced Mex_w is later used in 2_SVAR
+# differenced Mex_w_d is later used in 2_SVAR
 
 library(urca)         #for ur.df
 
@@ -10,9 +10,10 @@ Index = cbind(
   Mex_w$Date <= as.Date("2013-12-31") & Mex_w$Date >= as.Date("2012-01-01"),
   Mex_w$Date <= as.Date("2015-12-31") & Mex_w$Date >= as.Date("2014-01-01"))
 
-Vars_ADF = c("TIIE","MPTBA", "MPTBF", "GMXN01Y", "GMXN02Y", "GMXN05Y","GMXN10Y",
-             "GMXN30Y", "MXN_USD")                                  #List of variables ADF test is to be run on
-
+# Vars_ADF = c("TIIE","MPTBA", "MPTBF", "GMXN01Y", "GMXN02Y", "GMXN05Y","GMXN10Y",
+#              "GMXN30Y", "MXN_USD")                                  #List of variables ADF test is to be run on
+Vars_NoADF = c("Date","MPTB1", "F_Own", "F_Own_p","Tgt_rate")
+Vars_ADF = names(Mex_w)[!names(Mex_w) %in% Vars_NoADF]
 
 # Creating table to store results -----------------------------------------
 
@@ -24,7 +25,7 @@ colnames(ADF_tab) = paste(c(rep("Jan2010_Dec2011",2), rep("Jan2012_Dec 2013",2),
                           rep(c("Lvl","1Diff"),3), sep = "_" )
 x = NaN
 for (Var in 1:nvar){
-  x = c(x,paste(rep(Vars_ADF [Var],2), c("ADF","pValue"), sep = "_") )
+  x = c(x,paste(rep(Vars_ADF[Var],2), c("ADF","pValue"), sep = "_") )
 }
 rownames(ADF_tab) = x[-1]
 
@@ -71,6 +72,3 @@ for (subsamp in  1:nsubsamp){                                                   
 # Removing excess variables -----------------------------------------------
 
  rm(x,nvar,nsubsamp, Vars_ADF,Index, adf_l, adf_d, subsamp, Var)
-
-
-
