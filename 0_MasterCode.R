@@ -24,6 +24,10 @@ rm(list = ls())
 # data starts.
 source("Mexicopaper_analysis/1_DataCreate_BByield.R")
 
+# Uses data from Bloomberg in MXYC_1mo30y_PBAM.xlsx  and creates BBLiq (daily freq)
+# Liq_w (weekly frequency) which have bid-ask spreads. 
+source("Mexicopaper_analysis/1_DataCreate_BBLiq.R")
+
 # Uses data from Banxico in Mex_GD_ownership.xlsx and creates Own_Data with all
 # ownership data, Mex_FO with foreign ownership data. Also, exports Mex_FO. Creates
 # start_date_Own showing dates when data starts.
@@ -32,6 +36,10 @@ source("Mexicopaper_analysis/1_DataCreate_FO.R")
 # Uses data from Banxico in TIIE_daily.xlsx and MXN_USD_daily.xlsx. It creates 
 # TIIE and MXN from this.
 source("Mexicopaper_analysis/1_DataCreate_TIIE_xrate.R")
+
+
+# Uses data in EFFR.csv to create EFFR (daily data) and EFFR_w (weekly data)
+source("Mexicopaper_analysis/1_DataCreate_EFFR.R")
 
 # Uses data from Banxico in Mex_GD_Maturity.xlsx to create Mex_mat. This is 
 # needed only for 1 plot
@@ -64,6 +72,8 @@ source("Mexicopaper_analysis/2_SVAR_Mh.R")
 
 # ARIMAX of 10yr and 1mo yield on Proportion of Foreign Ownership. Uses Mex_W
 source("Mexicopaper_analysis/2_ARIMAX.R")
+
+source("Mexicopaper_analysis/2_EFFR_IV.R")
 
 # Creating figures --------------------------------------------------------
 
