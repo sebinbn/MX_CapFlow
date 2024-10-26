@@ -4,55 +4,41 @@
 # Function to create IRF -------------------
 
 
-irfCreate = function(samp_num){
+irfGen = function(samp_num,resp_num){
+  # Logic of steps:
+  # 1.Check if required subset of IRF data has NAs 
+  # 2.Subset required data from list and store in format needed for plotting.
+  # 3.Idenitfy name of response variable
+  # 4. Plot IRF
+  
   if ( all(is.na(IRFs[[samp_num]])) ){
     print('No analysis had been done owing to missing value')
-    return()
+    return()}
+  
+  irfDat = data.frame(Week = 0:(nrow(IRFs[[samp_num]]$irf$TIIE) - 1),
+                      IRF = IRFs[[samp_num]]$irf$TIIE[,resp_num],
+                      Upper_CI = IRFs[[samp_num]]$Upper$TIIE[,resp_num],
+                      Lower_CI = IRFs[[samp_num]]$Lower$TIIE[,resp_num])
+  
+  
+  # Before plotting I identify a long and short name for impulse variable and
+  # response variable. long name is used to label figure and short name to save file
+  
+  # Identify response variable name from sample
+  resp_var = colnames(IRFs[[samp_num]]$Upper$TIIE)[2]
+  if (resp_var %in% c("MPTBA", "MPTBC", "MPTBF", "MPTBI") ){
+    resp = substr(resp,5,5)
+    if (resp == "A"){ mo = "1"}
+    if (resp == "C"){ mo = "3"}
+    if (resp == "F"){ mo = "6"}
+    if (resp == "I"){ mo = "9"}
+    resp = paste(mo,"mo", sep = "")
+    Resp = paste(mo,"mo", sep = " ")
   }else{
-    response = c("MPTBF", "GMXN01Y","GMXN02Y", "GMXN05Y", "GMXN10Y", "GMXN30Y")
-    if(samp_num <= 18){
-      Resp = response[ceiling(samp_num/3)]
-      # irfDat = data.frame(Week = 0:(nrow(IRFs[[samp_num]]$irf$MPTBA) - 1),
-      #                     IRF = IRFs[[samp_num]]$irf$MPTBA[,Resp],
-      #                     Upper_CI = IRFs[[samp_num]]$Upper$MPTBA[,Resp],
-      #                     Lower_CI = IRFs[[samp_num]]$Lower$MPTBA[,Resp])
-      irfDat = data.frame(Week = 0:(nrow(IRFs[[samp_num]]$irf$TIIE) - 1),
-                          IRF = IRFs[[samp_num]]$irf$TIIE[,Resp],
-                          Upper_CI = IRFs[[samp_num]]$Upper$TIIE[,Resp],
-                          Lower_CI = IRFs[[samp_num]]$Lower$TIIE[,Resp])
-    }else if(samp_num >= 22){
-      irfDat = data.frame(Week = 0:(nrow(IRFs[[samp_num]]$irf$TIIE) - 1),
-                          IRF = IRFs[[samp_num]]$irf$TIIE[,'MPTBA'],
-                          Upper_CI = IRFs[[samp_num]]$Upper$TIIE[,'MPTBA'],
-                          Lower_CI = IRFs[[samp_num]]$Lower$TIIE[,'MPTBA'])
-    }else{
-      irfDat = data.frame(Week = 0:(nrow(IRFs[[samp_num]]$irf$TIIE) - 1),
-                          IRF = IRFs[[samp_num]]$irf$TIIE[,'GMXN10Y'],
-                          Upper_CI = IRFs[[samp_num]]$Upper$TIIE[,'GMXN10Y'],
-                          Lower_CI = IRFs[[samp_num]]$Lower$TIIE[,'GMXN10Y'])
-    }
-    return(irfPlot(irfDat,samp_num))
+    resp = paste(substr(resp_var,5,6),"y", sep = "")
+    Resp = paste(substr(resp_var,5,6),"yr", sep = " ")
   }
   
-}
-
-# Function to plot IRF using ggplot ---------------------------------------
-
-irfPlot = function(Data, samp_num){
-  # Identify response variable name from sample number
-  response = c("6mo", "01y","02y", "05y", "10y", "30y", "10y","1mo")
-  Response = c("6 mo", "1 yr","2 yr", "5 yr", "10 yr", "30 yr", "10 yr","1 mo")
-  Resp = Response[ceiling(samp_num/3)]
-  resp = response[ceiling(samp_num/3)]
-  
-  # Identify impulse variable name from sample number
-  # if(samp_num <= 18){
-  #   implse = "1mo"
-  #   Implse = "1 mo"
-  # }else{
-  #   implse = "ON"
-  #   Implse = "Overnight"
-  # }
   implse = "ON"
   Implse = "Overnight"
   
@@ -65,7 +51,7 @@ irfPlot = function(Data, samp_num){
     period = '2014-15'
   }
   
-  IRFPlot = ggplot(Data, aes(x = Week)) +
+  IRFPlot = ggplot(irfDat, aes(x = Week)) +
     geom_line(aes(y = IRF), color = "black", linewidth = 1.2) +                     # Main IRF line
     geom_ribbon(aes(ymin = Lower_CI, ymax = Upper_CI), fill = 'blue', alpha = 0.3) +  # CI band
     geom_hline(yintercept = 0, color = "red", linetype = "dashed", linewidth = 1) +  # Zero line
@@ -76,20 +62,26 @@ irfPlot = function(Data, samp_num){
     theme(axis.title.x = element_text(size = 14),
           axis.title.y = element_text(size = 14),
           axis.text = element_text(size = 12))
+  
+  #Saving plot to file
   path = substr(getwd(), 1, nchar(getwd()) - 13)                                  # going up 1 directory
   FileName = paste(period,implse,resp, sep = "_")
   path = paste(path,'Paper/Image_fromCode/',FileName,".png", sep = "")
   ggsave(filename = path, plot = IRFPlot, width = 5, height = 4, dpi = 300)
+ 
   return(IRFPlot)
+  
+  
 }
 
 
 # Creating plots ----------------------------------------------------------
 
 IRF_GGplot = list()
-for (i in 1:length(IRFs)){
-  irfpic = irfCreate(i)
+sampleNums = c(seq(1,49,3), seq(2,50,3) )
+
+for (i in sampleNums){
+  irfpic = irfGen(i,2)
   IRF_GGplot = c(IRF_GGplot, list(irfpic) ) 
 }
-irfpic = irfCreate(14)
-irfpic
+
