@@ -2,38 +2,12 @@
 
 library(vars)
 
-# Preparing subsamples ----------------------------------------------------
+# Preparing date index for subsetting------------------------------------------
 
 Index = cbind(
   Mex_w_d$Date <= as.Date("2011-12-31") & Mex_w_d$Date >= as.Date("2010-01-01"),
   Mex_w_d$Date <= as.Date("2013-12-31") & Mex_w_d$Date >= as.Date("2012-01-01"),
   Mex_w_d$Date <= as.Date("2015-12-31") & Mex_w_d$Date >= as.Date("2014-01-01"))
-
-Vars_SVAR = list(
-  rON6mo = c("TIIE","MPTBF","MXN_USD"),  rON01y = c("TIIE","GMXN01Y","MXN_USD"),
-  rON02y = c("TIIE","GMXN02Y","MXN_USD"), rON05y = c("TIIE","GMXN05Y","MXN_USD"),
-  rON10y = c("TIIE","GMXN10Y","MXN_USD"), rON30y = c("TIIE","GMXN30Y","MXN_USD"))
-
-subsamp = list(
-  sub_ON6mo = list(s1 = Mex_w_d[Index[,1], Vars_SVAR$rON6mo],
-                    s2 = Mex_w_d[Index[,2], Vars_SVAR$rON6mo],
-                    s3 = Mex_w_d[Index[,3], Vars_SVAR$rON6mo]),
-  sub_ON01y = list(s1 = Mex_w_d[Index[,1], Vars_SVAR$rON01y],
-                    s2 = Mex_w_d[Index[,2], Vars_SVAR$rON01y],
-                    s3 = Mex_w_d[Index[,3], Vars_SVAR$rON01y]),
-  sub_ON02y = list(s1 = Mex_w_d[Index[,1], Vars_SVAR$rON02y],
-                    s2 = Mex_w_d[Index[,2], Vars_SVAR$rON02y],
-                    s3 = Mex_w_d[Index[,3], Vars_SVAR$rON02y]),
-  sub_ON05y = list(s1 = Mex_w_d[Index[,1], Vars_SVAR$rON05y],
-                    s2 = Mex_w_d[Index[,2], Vars_SVAR$rON05y],
-                    s3 = Mex_w_d[Index[,3], Vars_SVAR$rON05y]),
-  sub_ON10y = list(s1 = Mex_w_d[Index[,1], Vars_SVAR$rON10y],
-                    s2 = Mex_w_d[Index[,2], Vars_SVAR$rON10y],
-                    s3 = Mex_w_d[Index[,3], Vars_SVAR$rON10y]),
-  sub_ON30y = list(s1 = Mex_w_d[Index[,1], Vars_SVAR$rON30y],
-                    s2 = Mex_w_d[Index[,2], Vars_SVAR$rON30y],
-                    s3 = Mex_w_d[Index[,3], Vars_SVAR$rON30y])
-)
 
 
 # Estimating VAR,SVAR,IRF -------------------------------------------------
@@ -48,7 +22,32 @@ VARs = list()
 SVARs = list()
 IRFs = list()
 i = 0
-for (sub_ in subsamp){
+for (var2 in ){
+  Vars_SVAR = list(
+    rON6mo = c("TIIE","MPTBF","MXN_USD"),  rON01y = c("TIIE","GMXN01Y","MXN_USD"),
+    rON02y = c("TIIE","GMXN02Y","MXN_USD"), rON05y = c("TIIE","GMXN05Y","MXN_USD"),
+    rON10y = c("TIIE","GMXN10Y","MXN_USD"), rON30y = c("TIIE","GMXN30Y","MXN_USD"))
+  
+  subsamp = list(
+    sub_ON6mo = list(s1 = Mex_w_d[Index[,1], Vars_SVAR$rON6mo],
+                     s2 = Mex_w_d[Index[,2], Vars_SVAR$rON6mo],
+                     s3 = Mex_w_d[Index[,3], Vars_SVAR$rON6mo]),
+    sub_ON01y = list(s1 = Mex_w_d[Index[,1], Vars_SVAR$rON01y],
+                     s2 = Mex_w_d[Index[,2], Vars_SVAR$rON01y],
+                     s3 = Mex_w_d[Index[,3], Vars_SVAR$rON01y]),
+    sub_ON02y = list(s1 = Mex_w_d[Index[,1], Vars_SVAR$rON02y],
+                     s2 = Mex_w_d[Index[,2], Vars_SVAR$rON02y],
+                     s3 = Mex_w_d[Index[,3], Vars_SVAR$rON02y]),
+    sub_ON05y = list(s1 = Mex_w_d[Index[,1], Vars_SVAR$rON05y],
+                     s2 = Mex_w_d[Index[,2], Vars_SVAR$rON05y],
+                     s3 = Mex_w_d[Index[,3], Vars_SVAR$rON05y]),
+    sub_ON10y = list(s1 = Mex_w_d[Index[,1], Vars_SVAR$rON10y],
+                     s2 = Mex_w_d[Index[,2], Vars_SVAR$rON10y],
+                     s3 = Mex_w_d[Index[,3], Vars_SVAR$rON10y]),
+    sub_ON30y = list(s1 = Mex_w_d[Index[,1], Vars_SVAR$rON30y],
+                     s2 = Mex_w_d[Index[,2], Vars_SVAR$rON30y],
+                     s3 = Mex_w_d[Index[,3], Vars_SVAR$rON30y])
+  )
   i = i + 1
   j = 0
   for (samp in sub_){
