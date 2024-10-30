@@ -1,5 +1,5 @@
 # This code estimates ARIMAX model where F_Own_p is the X variable.It uses Mex_w
-# for weekly data on yields and Vol_w for weekly data on volatility.
+# for weekly data on yields and Liq_w for weekly data on bid-ask spread.
 
 
 library(forecast) #for using auto.arima and Arima
@@ -46,6 +46,6 @@ lapply(Liq_w[,c('BA_TBA',"BA_10Y")], auto.arima, max.d = 0)
 summary(ur.df(na.omit(Liq_w$BA_TBA), type = "none",selectlags = "AIC")) #conclude stationarity
 summary(ur.df(na.omit(Liq_w$BA_10Y), type = "none",selectlags = "AIC")) #conclude stationarity
 
-Vol_reg = lapply(Liq_w[,c('BA_TBA',"BA_TBF","BA_01Y","BA_02Y","BA_05Y","BA_10Y", "BA_30Y")], 
+Liq_reg = lapply(Liq_w[,c('BA_TBA',"BA_TBF","BA_01Y","BA_02Y","BA_05Y","BA_10Y", "BA_30Y")], 
        function(x){summary(lm(x~F_Own_p, data = Liq_w))} )
 
