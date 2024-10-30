@@ -66,13 +66,15 @@ source("Mexicopaper_analysis/2_Elasticity.R")
 # Mex_w_d used in 2_SVAR.R
 source("Mexicopaper_analysis/2_ADFtest.R")
 
+# Runs (1) ARIMAX of 10yr and 1mo yield on Proportion of Foreign Ownership
+# (2) a linear regression of BA spread on FO. Uses Mex_W. This suffers from 
+# endogeneity.
+source("Mexicopaper_analysis/2_ARIMAX_Liq.R")
+
 # SVAR analysis. Uses Mex_W and Mex_d
 source("Mexicopaper_analysis/2_SVAR.R")
 source("Mexicopaper_analysis/2_SVAR_TIIE.R")
 source("Mexicopaper_analysis/2_SVAR_Mh.R")
-
-# ARIMAX of 10yr and 1mo yield on Proportion of Foreign Ownership. Uses Mex_W
-source("Mexicopaper_analysis/2_ARIMAX.R")
 
 source("Mexicopaper_analysis/2_EFFR_IV.R")
 
