@@ -22,7 +22,8 @@ df_long <- melt(df_means, id.vars = 'Maturity', variable.name = 'Period',
 # Create the ggplot with two lines
 ggplot(df_long, aes(x = Maturity, y = Mean, color = Period, group = Period)) +
   geom_line(size = 1.2) +
-  scale_color_discrete(labels = c("LowFO" = "Low FO", "HighFO" = "High FO")) +
+  scale_color_discrete(labels = c("LowFO" = "Low Foreign Ownership", 
+                                  "HighFO" = "High Foreign Ownership")) +
   labs(x = 'Maturity', y = 'Avg. Yield (in %)', title = 'Lower Yields in High Foreign ownership period') +
   theme_minimal()+
   theme(title = element_text(size = 16),
@@ -30,4 +31,4 @@ ggplot(df_long, aes(x = Maturity, y = Mean, color = Period, group = Period)) +
         axis.text = element_text(size = 14),
         axis.title = element_text(size = 14),
         legend.text = element_text(size = 14),
-        legend.title = element_blank(), legend.position = c(0.1, 0.9))
+        legend.title = element_blank(), legend.position = c(0.2, 0.9))

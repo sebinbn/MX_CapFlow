@@ -33,7 +33,7 @@ for (i in 1:53){
   samp_dates = c(samp_dates, list(D) )
   
   samp = Mex_w_d[which(Mex_w_d$Date == D[1]):which(Mex_w_d$Date == D[2]),
-                 c("MPTBA","GMXN10Y", "MXN_USD")]
+                 c("TIIE","MPTBA", "MXN_USD")]
   
   if (!all(!is.na(samp)) ){
       print(paste('There are NAs in sample',names(subsamp)[i], names(sub_)[j] ))
