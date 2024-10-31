@@ -29,7 +29,7 @@ IRFs = list()
 samp_dates = list()
 
 for (i in 1:53){
-  D = start_end + (i*28)
+  D = start_end + ((i-1)*28)
   samp_dates = c(samp_dates, list(D) )
   
   samp = Mex_w_d[which(Mex_w_d$Date == D[1]):which(Mex_w_d$Date == D[2]),
