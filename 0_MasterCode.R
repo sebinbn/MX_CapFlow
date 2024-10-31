@@ -71,12 +71,15 @@ source("Mexicopaper_analysis/2_ADFtest.R")
 # endogeneity.
 source("Mexicopaper_analysis/2_ARIMAX_Liq.R")
 
+# Runs aforementioned (1) ARIMAX of 10yr and 1mo yield on Proportion of FO and
+# (2) a linear regression of BA spread on FO using EFFR as IV
+source("Mexicopaper_analysis/2_EFFR_IV.R")
+
 # SVAR analysis. Uses Mex_W and Mex_d
 source("Mexicopaper_analysis/2_SVAR.R")
 source("Mexicopaper_analysis/2_SVAR_TIIE.R")
-source("Mexicopaper_analysis/2_SVAR_Mh.R")
 
-source("Mexicopaper_analysis/2_EFFR_IV.R")
+
 
 # Creating figures --------------------------------------------------------
 
