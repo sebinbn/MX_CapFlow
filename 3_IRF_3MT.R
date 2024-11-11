@@ -33,7 +33,7 @@ df_long <- melt(irfDat[-1,c("Maturity","L_IRF","H_IRF")],
 
 ggplot(df_long, aes(x = Maturity, y = value, fill = Period)) +
   geom_segment(aes(x = Maturity, xend = Maturity, y = 0, yend = value, color = Period),
-               size = 1.5,
+               size = 1.75,
                arrow = arrow(length = unit(0.15, "inches"))) +
   scale_color_discrete(labels = c("L_IRF" = "Low Foreign Ownership", 
                                   "H_IRF" = "High Foreign Ownership")) +
@@ -42,10 +42,10 @@ ggplot(df_long, aes(x = Maturity, y = value, fill = Period)) +
   theme_minimal()+
   theme(title = element_text(size = 16),
         axis.text.x = element_text(angle = 45, hjust = 1), 
-        axis.text = element_text(size = 14),
-        axis.title = element_text(size = 14),
-        legend.text = element_text(size = 14),
-        legend.title = element_blank(), legend.position = c(0.8, 0.9))
+        axis.text = element_text(size = 16),
+        axis.title = element_text(size = 16),
+        legend.text = element_text(size = 16),
+        legend.title = element_blank(), legend.position = c(0.77, 0.9))
 
 
 
