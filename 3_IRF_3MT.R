@@ -27,24 +27,25 @@ colnames(irfDat)[-1] = c("L_IRF","L_Up", "L_Low","H_IRF","H_Up", "H_Low") #intia
 irfDat$Maturity = factor(irfDat$Maturity, 
                          levels = Maturity[c(1,15,16,18,17,2:14)])         #converting to factor to control order on x-axis.           
 
-df_long <- melt(irfDat[c("Maturity","L_IRF","H_IRF")], 
+df_long <- melt(irfDat[-1,c("Maturity","L_IRF","H_IRF")], 
                 id.vars = 'Maturity', variable.name = 'Period')
 
 
 ggplot(df_long, aes(x = Maturity, y = value, fill = Period)) +
   geom_segment(aes(x = Maturity, xend = Maturity, y = 0, yend = value, color = Period),
-               size = 1.5,
+               size = 1.75,
                arrow = arrow(length = unit(0.15, "inches"))) +
-  scale_color_discrete(labels = c("L_IRF" = "Low FO", "H_IRF" = "High FO")) +
-  labs(x = 'Maturity', y = 'Transmission (in % points)',
-       title = 'Lower transmission in High foreign ownership period') +
+  scale_color_discrete(labels = c("L_IRF" = "Low Foreign Ownership", 
+                                  "H_IRF" = "High Foreign Ownership")) +
+  labs(x = 'Maturity', y = 'Response (in % points)',
+       title = 'Response of yields to 1 % point increase in overnight rate') +
   theme_minimal()+
   theme(title = element_text(size = 16),
         axis.text.x = element_text(angle = 45, hjust = 1), 
-        axis.text = element_text(size = 14),
-        axis.title = element_text(size = 14),
-        legend.text = element_text(size = 14),
-        legend.title = element_blank(), legend.position = c(0.9, 0.9))
+        axis.text = element_text(size = 16),
+        axis.title = element_text(size = 16),
+        legend.text = element_text(size = 16),
+        legend.title = element_blank(), legend.position = c(0.77, 0.9))
 
 
 
