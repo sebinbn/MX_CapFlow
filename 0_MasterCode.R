@@ -83,9 +83,10 @@ source("Mexicopaper_analysis/2_SVAR_TIIE.R")
 
 # Creating figures --------------------------------------------------------
 
-source("Mexicopaper_analysis/3_Fig_FO.R")                                       # time plot of Foreign ownership as value and share
-FO_value_plot
-FO_share_plot
+#The figures that show just Fo in a line is not being used in slides anymore.
+#source("Mexicopaper_analysis/3_Fig_FO.R")                                       # time plot of Foreign ownership as value and share
+#FO_value_plot
+#FO_share_plot
 
 source("Mexicopaper_analysis/3_Fig_Mat.R")                                       # time plot of share of long term debt Foreign ownership as value and share
 Mat_plot
