@@ -19,9 +19,11 @@ OwnShare_plot = ggplot(data = own_long, aes(x = Date, y = value, color = variabl
                                "Insurance Co.","Pension funds","Non-residents"),
                     palette = "Set3") +
   guides(color = "none", fill = guide_legend(reverse = TRUE)) +
+  scale_x_date(date_labels = '%Y', date_breaks = "2 year", expand = c(0, 0))+
+  scale_y_continuous(expand = c(0,0))+
   labs(y = 'Ownership share in govt bonds O/S', x = element_blank())+ 
-  scale_x_date(date_labels = '%Y', date_breaks = "2 year")+
-  theme(axis.text = element_text(size = 14), axis.title = element_text(size = 14),
+  theme(axis.text.x = element_text(size = 16),axis.text.y = element_text(size = 14), 
+        axis.title = element_text(size = 16),
         legend.title = element_blank(),legend.text = element_text(size = 14),
         legend.position = "bottom")
 
