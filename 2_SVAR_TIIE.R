@@ -72,6 +72,7 @@ for (Var2 in Vars_SVAR){
   } #end of looping across periods
 } #end of looping across SVAR variables
 
+save(VARlags,VARs,SVARs,IRFs, file = "SVARResults_byMat.RData" )
 
 # Removing unnecessary variables ------------------------------------------
 

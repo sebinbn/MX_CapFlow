@@ -80,10 +80,11 @@ for (t in 1:53){
     
 }} #end of time and spec loops
 
+save(samp_dates, VARlags,VARs,SVARs,IRFs, file = "SVARResults_byHor.RData" )
 
 # Removing unnecessary variables ------------------------------------------
 
-rm(Index, Vars_SVAR, subsamp, samp_VAR, samp_SVAR, samp_IRF)
+rm(checkNA,b,D,SVARVars, Vars_SVAR, samp, samp_VAR, samp_SVAR, samp_IRF)
 
 
 
