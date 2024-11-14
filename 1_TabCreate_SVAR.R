@@ -46,15 +46,15 @@ for(i in 1:length(Sun)){
 }
 colMeans(is.na(Mex_w))
 
-# Removing NAs between 2010 to 2015. Only this period is considered because that is 
-# what is analysed with SVAR. There are some very large NA gaps in other periods
-# which are best left as is.
+# Removing NAs between 2010 to 2019. Only this period is considered because that is 
+# what is needed to be interpolated for SVAR analysis period. There are some very
+# large NA gaps in other periods before 2010 and after 2019 which are best left as is.
 
 # the dates of 2017-04-30 and 2009-11-01 are decided based on trying out multiple
 # dates. If the beginning/ending of the data has NAs, they are retained by na.approx
 
 # 4yr, 7yr and 9yr has a large gap which requires using 2017-04-30
-Index = Mex_w$Date <= as.Date("2017-04-30") & Mex_w$Date >= as.Date("2009-11-01")
+Index = Mex_w$Date <= as.Date("2019-12-31") & Mex_w$Date >= as.Date("2009-11-01")
 Mex_w[Index,-1] = na.approx(Mex_w[Index,-1], na.rm = F)
 write.csv(Mex_w, "Mexicopaper_Data/Mex_weekly.csv", row.names = F)                                 #Exporting weekly data
 
