@@ -5,6 +5,8 @@ EFFR = read.csv('EFFR.csv')
 EFFR$DATE = as.Date(EFFR$DATE)
 EFFR$EFFR = as.numeric(EFFR$EFFR)
 
+IIP = read.csv('INDPRO.csv')
+IIP$DATE = as.Date(IIP$DATE)
 
 # Creating Weekly data ----------------------------------------------------
 
