@@ -10,7 +10,7 @@
 cols = c("Date","SF65216_p","Banxico_p","SF65211_p","SF65214_p","SF65215_p",
          "SF65213_p","SF65218_p")
 
-own_long = melt(Own_Data[Own_Data$Date <= as.Date("2023-12-31") & 
+own_long = melt(Own_Data[Own_Data$Date <= as.Date("2020-12-31") & 
                            Own_Data$Date >= as.Date("2006-01-01"),cols],
                 id.vars = "Date")
 OwnShare_plot = ggplot(data = own_long, aes(x = Date, y = value, color = variable)) +
