@@ -20,8 +20,19 @@ for(i in 1:length(Sun)){
   EFFR_w[i,2] = if(length(a) != 0) tail(a,1) else NA
 } 
 
+# Creating Monthly data ----------------------------------------------------
+Month = seq(as.Date("2006-02-01"), as.Date("2024-01-01"), by = "month")-1          #creating vector of last day of months.
+
+EFFR_m = data.frame(Date = Month, Values = matrix(NaN, length(Month),1) )
+colnames(EFFR_m)[-1] = 'EFFR'
+
+for(i in 1:length(Month)){                                                          
+  Month_Data = EFFR[EFFR$DATE <= Month[i] & EFFR$DATE > (Month[i]-10), ] #here 10 is arbitrary. It has to be a number large enough so that there are non NAs
+  a = na.omit(Month_Data[,2])
+  EFFR_m[i,2] = if(length(a) != 0) tail(a,1) else NA
+}
 
 # Removing unnecessary variables ------------------------------------------
 
 
-rm(Sun,Week_Data, a)
+rm(Sun,Month, Week_Data,Month_Data, a,i)

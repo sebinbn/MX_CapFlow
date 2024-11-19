@@ -50,10 +50,33 @@ for(i in 1:length(Sun)){
   }
 } 
 
+# Creating Monthly data ----------------------------------------------------
+
+Month = seq(as.Date("2006-02-01"), as.Date("2024-01-01"), by = "month")-1          #creating vector of last day of months.
+Liq_m = data.frame(Date = Month,
+                   Values = matrix(NaN, length(Month),length(VarsExport) ) )                #Initiating a dataframe
+colnames(Liq_m)[-1] = VarsExport
+
+for(i in 1:length(Month)){                                                          
+  Month_Data = BBLiq[BBLiq$Date <= Month[i] & BBLiq$Date > (Month[i]-10),
+                    c('Date',VarsExport) ]
+  
+  for (V in VarsExport){
+    a = na.omit(Month_Data[V])
+    Liq_m[i, V] = if(nrow(a) != 0) tail(a,1) else NA
+  }
+} 
+
 
 # Calculating bid-ask spread ----------------------------------------------
 
 NewCols = paste('BA' , c("TBA", "TBF", "01Y","02Y", "05Y", "10Y", "30Y") , sep= "_") 
 Liq_w[NewCols] = Liq_w[,2:8] - Liq_w[9:15]
+Liq_m[NewCols] = Liq_m[,2:8] - Liq_m[9:15]
 
 colSums(is.na(Liq_w)) #seeing number of missing values
+
+
+# Removing unnecessary variables ------------------------------------------
+
+rm(Sun, Month, Week_Data, Month_Data, VarsExport, V, i)

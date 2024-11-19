@@ -58,6 +58,36 @@ Index = Mex_w$Date <= as.Date("2019-12-31") & Mex_w$Date >= as.Date("2009-11-01"
 Mex_w[Index,-1] = na.approx(Mex_w[Index,-1], na.rm = F)
 write.csv(Mex_w, "Mexicopaper_Data/Mex_weekly.csv", row.names = F)                                 #Exporting weekly data
 
+
+# Creating Monthly Data  ---------------------------------------------------
+
+# LOGIC
+# Creating monthly data as the data on the latest trading day of the month. First,
+# all sunday dates are created and this is used to extract the weekly table. From
+# the weekly table, the last value is picked of each variable and stored in Mex_w.
+# Note: TIIE starts only from 2006-01-02 and so has an NA for 2006-01-01 which is 
+# a Sunday
+
+
+Month = seq(as.Date("2006-02-01"), as.Date("2024-01-01"), by = "month")-1          #creating vector of last day of months.
+
+Mex_m = data.frame(Date = Month, Values = matrix(NaN, length(Month),
+                                               ncol(MergedTab) -1) )                #Initiating a dataframe
+colnames(Mex_m)[-1] = colnames(MergedTab)[-1]
+
+for(i in 1:length(Month)){                                                          
+  Month_Data = MergedTab[MergedTab$Date <= Month[i] & MergedTab$Date > (Month[i]-20),] #here 20 is arbitrary. It has to be a number large enough so that there are non NAs
+  
+  for (V in names(MergedTab)[-1]){
+    a = na.omit(Month_Data[V])
+    Mex_m[i, V] = if(nrow(a) != 0) tail(a,1) else NA
+  }
+}
+
+Index = Mex_m$Date <= as.Date("2022-12-31")
+colMeans(is.na(Mex_m[Index,]))
+Mex_m[Index,"GMXN10Y"] = na.approx(Mex_m[Index,"GMXN10Y"], na.rm = F)
+
 # Removing unused variables -----------------------------------------------
 
-rm(Sun,V, MergedTab, Week_Data, Index)
+rm(Sun,V, MergedTab, Week_Data, Index, Month, Month_Data)
