@@ -1,4 +1,6 @@
-# This file uses EFFR_w, Liq_w and Mex_w to run following IV regressions
+#Update iniitial comments
+
+# This file uses EFFR_w, Liq_w, Mex_w, EFFR_m, Liq_m and Mex_m to run following IV regressions
 # 1. 2SLS regression of bid-ask spreads (in bps) on foreign ownership (in percent points)
 # 2. Using 1st stage fitted values as X in ARIMAX model on yields
 # It returns the results in a list whose components are 
@@ -14,75 +16,111 @@ library(urca) # for ur.df
 # Checking Relevance ------------------------------------------------------
 
 ##Plotting EFFR and Capital inflows
-# EFFR_long = melt(IVRegData, id.vars = "Date")
+# EFFR_long = melt(IVRegData_w, id.vars = "Date")
 # ggplot( data = EFFR_long, aes(x = Date, y = value, color = variable)) +
 #   geom_line(linewidth = 1.25)
 
 
-# 2SLS - IV ------------------------------------------------------------
+# Creating dataframes------------------------------------------------------------
 
-## Creating dataframe ------------------------------------------------
-IVRegData = EFFR_w
-IVRegData$F_Own_pcnt = Mex_w$F_Own_p *100                                            # Adding columns from other datatables
+## Creating weekly dataframe ------------------------------------------------
+IVRegData_w = EFFR_w
+IVRegData_w$F_Own_pcnt = Mex_w$F_Own_p *100                                            # Adding columns from other datatables
+IVRegData_w[c('MPTBA',"GMXN10Y")] = na.approx(Mex_w[ ,c('MPTBA',"GMXN10Y")])
 #BA10y variable has many NAs between 2007 Oct and 2011 July and BA1y has few NA 
 # values before 2023 Mar. So, analysis is done until 2022 Dec.
-IVRegData[c('BA1mo', 'BA10Y')] = na.approx(Liq_w[c('BA_TBA', 'BA_10Y')]*100) 
-IVRegData = IVRegData[IVRegData$Date <= as.Date("2022-12-31"),]
+IVRegData_w[c('BA1mo', 'BA10Y')] = na.approx(Liq_w[c('BA_TBA', 'BA_10Y')]*100) 
+IVRegData_w = IVRegData_w[IVRegData_w$Date <= as.Date("2022-12-31"),]
 
+## Creating monthly dataframe ------------------------------------------------
+IVRegData_m = EFFR_m
+IVRegData_m$F_Own_pcnt = Mex_m$F_Own_p *100                                            # Adding columns from other datatables
+IVRegData_m[c('MPTBA',"GMXN10Y")] = Mex_m[ ,c('MPTBA',"GMXN10Y")]
+IVRegData_m[c('BA1mo', 'BA10Y')] = na.approx(Liq_m[c('BA_TBA', 'BA_10Y')]*100) 
+IVRegData_m = IVRegData_m[IVRegData_m$Date <= as.Date("2022-12-31"),]
 
-## Running ADF test --------------------------------------------------------
+# Running ADF tests  ---------------------------------------------
 
-ADFresults =  apply(IVRegData[-1], MARGIN = 2, FUN = ur.df, type = "none")
-for (i in 1:4){
-  print(paste("p-value of ADF stat at levels for",colnames(IVRegData)[i+1],"is", 
-              ADFresults[[i]]@testreg$coefficients[1,4]))
+## on weekly data ----------------------------------------------------------
+
+ADFresults =  apply(IVRegData_w[-1], MARGIN = 2, FUN = ur.df, type = "none")
+ADFresults =  c(ADFresults, apply(apply(IVRegData_w[-1], 2, diff), 
+                                       MARGIN = 2, FUN = ur.df, type = "none") )
+for (i in 1:length(ADFresults)){
+  if(i<7){
+    print(paste("p-value of ADF stat at levels for",colnames(IVRegData_w)[i+1],"is", 
+                ADFresults[[i]]@testreg$coefficients[1,4]))
+  }else{
+    print(paste("p-value of ADF stat at 1st diff for",colnames(IVRegData_w)[i+1],"is", 
+                ADFresults[[i]]@testreg$coefficients[1,4]))
+  }
 }
 
-# from the results, I can see that there is unit root in EFFR and F_Own_pcnt. 
+# from the results, I can see that there is unit root in EFFR, F_Own_pcnt and yields. 
 # the BA spreads are both stationary.
 
 #taking first differences of EFFR and FO
-IVData_diff = IVRegData[-1,] #to copy the dates and BA columns, other columns get modified in next line
-IVData_diff[c(2,3)] = apply(IVRegData[c(2,3)], 2, diff)
+IVData_w_stat = IVRegData_w[-1,] #to copy the dates and BA columns, other columns get modified in next line
+IVData_w_stat[2:5] = apply(IVRegData_w[2:5], 2, diff)
 
-# 2SLS on BA Spread  ------------------------------------------------------
+
+## on monthly data ---------------------------------------------
+
+ADFresults =  apply(IVRegData_m[-1], MARGIN = 2, FUN = ur.df, type = "none")
+ADFresults =  c(ADFresults, apply(apply(IVRegData_m[-1], 2, diff), 
+                                  MARGIN = 2, FUN = ur.df, type = "none") )
+for (i in 1:length(ADFresults)){
+  if(i<7){
+    print(paste("p-value of ADF stat at levels for",colnames(IVRegData_m)[i+1],"is", 
+                ADFresults[[i]]@testreg$coefficients[1,4]))
+  }else{
+    print(paste("p-value of ADF stat at 1st diff for",colnames(IVRegData_m)[i+1],"is", 
+                ADFresults[[i]]@testreg$coefficients[1,4]))
+  }
+}
+
+# from the results, only 1 mo BA spread is stationary.
+
+#taking first differences of EFFR and FO
+IVData_m_stat = IVRegData_m[-1,] #to copy the dates and BA columns, other columns get modified in next line
+IVData_m_stat[-c(1,6)] = apply(IVRegData_m[-c(1,6)], 2, diff)
+#IVData_m_stat[-1] = apply(IVRegData_m[-1], 2, diff)
+
+
+# 2SLS on Weekly data  ------------------------------------------------------
 
 ## with 1st differencing ----------------------------------------------
-Stage1 = lm(F_Own_pcnt~ 0 + EFFR, data = IVData_diff )
+Stage1 = lm(F_Own_pcnt~ 0 + EFFR, data = IVData_w_stat )
 summary(Stage1)
 
-IVreg_1mo = ivreg(BA1mo ~ 0 + F_Own_pcnt | EFFR, data = IVData_diff )
+IVreg_1mo = ivreg(BA1mo ~ 0 + F_Own_pcnt | EFFR, data = IVData_w_stat )
 summary(IVreg_1mo)
-IVreg_10y = ivreg(BA10Y ~ 0 + F_Own_pcnt | EFFR, data = IVData_diff )
+IVreg_10y = ivreg(BA10Y ~ 0 + F_Own_pcnt | EFFR, data = IVData_w_stat )
 summary(IVreg_10y)
 
 ## without differencing ----------------------------------------------
-Stage1 = lm(F_Own_pcnt~  EFFR, data = IVRegData)
+Stage1 = lm(F_Own_pcnt~  EFFR, data = IVRegData_w)
 summary(Stage1)
 
-IVreg_1mo = ivreg(BA1mo ~  F_Own_pcnt | EFFR, data = IVRegData )
+IVreg_1mo = ivreg(BA1mo ~  F_Own_pcnt | EFFR, data = IVRegData_w )
 summary(IVreg_1mo)
-IVreg_10y = ivreg(BA10Y ~  F_Own_pcnt | EFFR, data = IVRegData )
+IVreg_10y = ivreg(BA10Y ~  F_Own_pcnt | EFFR, data = IVRegData_w )
 summary(IVreg_10y)
+
+## with lags -------------------------------------------
+Stage1 = lm(F_Own_pcnt[-(1:4)]~  EFFR[-(1:4)] + EFFR[-c(1:3, 887)]
+            + EFFR[-c(1:2, 886:887)]+ EFFR[-c(1, 885:887)]+ EFFR[-c(884:887)]
+            , data = IVRegData_w )
+summary(Stage1)
 
 ## with 1st differencing and lags -------------------------------------------
 Stage1 = lm(F_Own_pcnt[-(1:4)]~ 0 + EFFR[-(1:4)] + EFFR[-c(1:3, 886)]
             + EFFR[-c(1:2, 885:886)]+ EFFR[-c(1, 884:886)]+ EFFR[-c(883:886)]
-            , data = IVData_diff )
+            , data = IVData_w_stat )
 summary(Stage1)
-
-IVreg_1mo = ivreg(BA1mo ~ 0 + F_Own_pcnt | EFFR, data = IVData_diff )
-summary(IVreg_1mo)
-IVreg_10y = ivreg(BA10Y ~ 0 + F_Own_pcnt | EFFR, data = IVData_diff )
-summary(IVreg_10y)
 
 
 # 2SLS ARIMAX on yields ------------------------------------------------------
-
-#getting yield data and first differencing
-IVData_diff[c('MPTBA',"GMXN10Y")] = apply(na.approx(
-  Mex_w[Mex_w$Date <= as.Date("2022-12-31") ,c('MPTBA',"GMXN10Y")]),
-  MARGIN = 2, FUN = diff)
 
 # #Checking ARIMA structure for 10yr and 1mo yield.
 # lapply(Mex_w[,c('MPTBA',"GMXN10Y")], auto.arima, max.d = 1, xreg = Stage1$fitted.values) #suggest 1,1,1 for 1mo and 0,1,5 for 10yr
@@ -99,7 +137,7 @@ IVData_diff[c('MPTBA',"GMXN10Y")] = apply(na.approx(
 
 # Estimating ARIMAX model --------------------------------------------------
 
-Model_10y = Arima(IVData_diff$GMXN10Y, order = c(1,0,0), 
+Model_10y = Arima(IVData_w_stat$GMXN10Y, order = c(1,0,0), 
                   xreg = diff(Stage1$fitted.values), include.mean = F )
 Model_10y
 (1-pnorm(abs(Model_10y$coef)/sqrt(diag(Model_10y$var.coef))))*2                 #calculating p-value
@@ -107,15 +145,81 @@ Model_10y$nobs
 
 # Although AIC suggested ARIMA(1,1,1) for 1mo, I use ARIMA(1,1,0) because the 
 # coefficients have similar magnitude and opposite signs indicating spurious regression
-Model_1mo = Arima(IVData_diff$MPTBA, order = c(1,0,0),
+Model_1mo = Arima(IVData_w_stat$MPTBA, order = c(1,0,0),
                   xreg = diff(Stage1$fitted.values), include.mean = F)
 Model_1mo
 (1-pnorm(abs(Model_1mo$coef)/sqrt(diag(Model_1mo$var.coef))))*2                 #calculating p-value
 Model_1mo$nobs
 
+# 2SLS on Monthly data  ------------------------------------------------------
+
+## First stage regressions -------------------------------------------------
+
+### with 1st differencing ----------------------------------------------
+Stage1 = lm(F_Own_pcnt~ 0 + EFFR, data = IVData_m_stat )
+summary(Stage1)
+## without differencing ----------------------------------------------
+Stage1 = lm(F_Own_pcnt~  EFFR, data = IVRegData_m)
+summary(Stage1)
+## with lags -------------------------------------------
+Stage1 = lm(F_Own_pcnt[-(1:4)]~  EFFR[-(1:4)] + EFFR[-c(1:3, 204)]
+            + EFFR[-c(1:2, 203:204)]+ EFFR[-c(1, 202:204)]+ EFFR[-c(201:204)]
+            , data = IVRegData_m )
+summary(Stage1)
+## with 1st differencing and lags -------------------------------------------
+Stage1 = lm(F_Own_pcnt[-(1:4)]~ 0 + EFFR[-(1:4)] + EFFR[-c(1:3, 203)]
+            + EFFR[-c(1:2, 202:203)]+ EFFR[-c(1, 201:203)]+ EFFR[-c(200:203)]
+            , data = IVData_m_stat )
+summary(Stage1)
+
+## Second stage regressions -------------------------------------------------
+
+### On  Levels --------------------------------------------------------------
+
+IVreg_1mo = ivreg(BA1mo ~ F_Own_pcnt | EFFR, data = IVRegData_m )
+summary(IVreg_1mo)
+IVreg_10y = ivreg(BA10Y ~ F_Own_pcnt | EFFR, data = IVRegData_m )
+summary(IVreg_10y)
+
+### On  differences -----------------------------------------------------------
+
+IVreg_1mo = ivreg(BA1mo ~  F_Own_pcnt | EFFR, data = IVData_m_stat )
+summary(IVreg_1mo)
+IVreg_10y = ivreg(BA10Y ~ 0 + F_Own_pcnt | EFFR, data = IVData_m_stat )
+summary(IVreg_10y)
+
+
+## 2SLS ARIMAX on yields ------------------------------------------------------
+
+### with 1st differencing ----------------------------------------------
+Stage1 = lm(F_Own_pcnt~ 0 + EFFR, data = IVData_m_stat )
+Model_10y = lm(IVData_m_stat$GMXN10Y ~ 0+ Stage1$fitted.values) #after differencing, this is a white noise. auto.arima suggests (0,1,0) on levels data
+summary(Model_10y)
+
+Model_1mo = Arima(IVData_m_stat$MPTBA, order = c(1,0,0),
+                  xreg = Stage1$fitted.values, include.mean = F)
+Model_1mo
+(1-pnorm(abs(Model_1mo$coef)/sqrt(diag(Model_1mo$var.coef))))*2                 #calculating p-value
+Model_1mo$nobs
+
+### without differencing ----------------------------------------------
+Stage1 = lm(F_Own_pcnt~ EFFR, data = IVRegData_m )
+#auto.arima(IVRegData_m$GMXN10Y)
+Model_10y = Arima(IVRegData_m$GMXN10Y, order = c(1,0,0),
+                  xreg = Stage1$fitted.values)
+Model_10y
+(1-pnorm(abs(Model_10y$coef)/sqrt(diag(Model_10y$var.coef))))*2                 #calculating p-value
+
+
+Model_1mo = Arima(IVRegData_m$MPTBA, order = c(1,0,0),
+                  xreg = Stage1$fitted.values, include.mean = F)
+Model_1mo
+(1-pnorm(abs(Model_1mo$coef)/sqrt(diag(Model_1mo$var.coef))))*2                 #calculating p-value
+Model_1mo$nobs
 
 # Removing unnecessary variables ------------------------------------------
 IVRegResults = list(Stg1 = Stage1, Stg2_1mo = IVreg_1mo, Stg2_10y = IVreg_10y,
                     ARIMAX1mo = Model_1mo, ARIMAX10y = Model_10y)
 
-rm(IVRegData,IVData_diff , ADFresults,Stage1, IVreg_1mo,IVreg_10y, Model_1mo, Model_10y)
+rm(IVRegData_w,IVRegData_m, IVData_w_stat , IVData_m_stat, ADFresults,Stage1, 
+   IVreg_1mo,IVreg_10y, Model_1mo, Model_10y)
