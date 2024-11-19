@@ -41,25 +41,46 @@ for (i in 1:4){
 # from the results, I can see that there is unit root in EFFR and F_Own_pcnt. 
 # the BA spreads are both stationary.
 
-#taking first differences
-IVData_stat = IVRegData[-1,]
-#IVData_stat[c("EFFR", "F_Own_pcnt")]  = apply(IVRegData[c("EFFR", "F_Own_pcnt")], 2, diff)
-IVData_stat[-1] = apply(IVRegData[-1], 2, diff)
+#taking first differences of EFFR and FO
+IVData_diff = IVRegData[-1,] #to copy the dates and BA columns, other columns get modified in next line
+IVData_diff[c(2,3)] = apply(IVRegData[c(2,3)], 2, diff)
+
 # 2SLS on BA Spread  ------------------------------------------------------
 
-Stage1 = lm(F_Own_pcnt~ 0 + EFFR, data = IVData_stat)
-#Stage2 = lm(IVData_stat$BA1mo ~ Stage1$fitted.values)
+## with 1st differencing ----------------------------------------------
+Stage1 = lm(F_Own_pcnt~ 0 + EFFR, data = IVData_diff )
 summary(Stage1)
 
-IVreg_1mo = ivreg(BA1mo ~ 0 + F_Own_pcnt | EFFR, data = IVData_stat)
+IVreg_1mo = ivreg(BA1mo ~ 0 + F_Own_pcnt | EFFR, data = IVData_diff )
 summary(IVreg_1mo)
-IVreg_10y = ivreg(BA10Y ~ 0 + F_Own_pcnt | EFFR, data = IVData_stat)
+IVreg_10y = ivreg(BA10Y ~ 0 + F_Own_pcnt | EFFR, data = IVData_diff )
 summary(IVreg_10y)
+
+## without differencing ----------------------------------------------
+Stage1 = lm(F_Own_pcnt~  EFFR, data = IVRegData)
+summary(Stage1)
+
+IVreg_1mo = ivreg(BA1mo ~  F_Own_pcnt | EFFR, data = IVRegData )
+summary(IVreg_1mo)
+IVreg_10y = ivreg(BA10Y ~  F_Own_pcnt | EFFR, data = IVRegData )
+summary(IVreg_10y)
+
+## with 1st differencing and lags -------------------------------------------
+Stage1 = lm(F_Own_pcnt[-(1:4)]~ 0 + EFFR[-(1:4)] + EFFR[-c(1:3, 886)]
+            + EFFR[-c(1:2, 885:886)]+ EFFR[-c(1, 884:886)]+ EFFR[-c(883:886)]
+            , data = IVData_diff )
+summary(Stage1)
+
+IVreg_1mo = ivreg(BA1mo ~ 0 + F_Own_pcnt | EFFR, data = IVData_diff )
+summary(IVreg_1mo)
+IVreg_10y = ivreg(BA10Y ~ 0 + F_Own_pcnt | EFFR, data = IVData_diff )
+summary(IVreg_10y)
+
 
 # 2SLS ARIMAX on yields ------------------------------------------------------
 
 #getting yield data and first differencing
-IVData_stat[c('MPTBA',"GMXN10Y")] = apply(na.approx(
+IVData_diff[c('MPTBA',"GMXN10Y")] = apply(na.approx(
   Mex_w[Mex_w$Date <= as.Date("2022-12-31") ,c('MPTBA',"GMXN10Y")]),
   MARGIN = 2, FUN = diff)
 
@@ -78,16 +99,16 @@ IVData_stat[c('MPTBA',"GMXN10Y")] = apply(na.approx(
 
 # Estimating ARIMAX model --------------------------------------------------
 
-Model_10y = Arima(IVData_stat$GMXN10Y, order = c(1,0,0), 
-                  xreg = Stage1$fitted.values, include.mean = F )
+Model_10y = Arima(IVData_diff$GMXN10Y, order = c(1,0,0), 
+                  xreg = diff(Stage1$fitted.values), include.mean = F )
 Model_10y
 (1-pnorm(abs(Model_10y$coef)/sqrt(diag(Model_10y$var.coef))))*2                 #calculating p-value
 Model_10y$nobs
 
 # Although AIC suggested ARIMA(1,1,1) for 1mo, I use ARIMA(1,1,0) because the 
 # coefficients have similar magnitude and opposite signs indicating spurious regression
-Model_1mo = Arima(IVData_stat$MPTBA, order = c(1,0,0),
-                  xreg = Stage1$fitted.values, include.mean = F)
+Model_1mo = Arima(IVData_diff$MPTBA, order = c(1,0,0),
+                  xreg = diff(Stage1$fitted.values), include.mean = F)
 Model_1mo
 (1-pnorm(abs(Model_1mo$coef)/sqrt(diag(Model_1mo$var.coef))))*2                 #calculating p-value
 Model_1mo$nobs
@@ -97,4 +118,4 @@ Model_1mo$nobs
 IVRegResults = list(Stg1 = Stage1, Stg2_1mo = IVreg_1mo, Stg2_10y = IVreg_10y,
                     ARIMAX1mo = Model_1mo, ARIMAX10y = Model_10y)
 
-rm(IVRegData,IVData_stat, ADFresults,Stage1, IVreg_1mo,IVreg_10y, Model_1mo, Model_10y)
+rm(IVRegData,IVData_diff , ADFresults,Stage1, IVreg_1mo,IVreg_10y, Model_1mo, Model_10y)
