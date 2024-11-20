@@ -26,7 +26,8 @@ library(urca) # for ur.df
 ## Creating weekly dataframe ------------------------------------------------
 IVRegData_w = EFFR_w
 IVRegData_w$F_Own_pcnt = Mex_w$F_Own_p *100                                            # Adding columns from other datatables
-IVRegData_w[c('MPTBA',"GMXN10Y")] = na.approx(Mex_w[ ,c('MPTBA',"GMXN10Y")])
+IVRegData_w[c('MPTBA',"GMXN10Y","TIIE")] = 
+  na.approx(Mex_w[ ,c('MPTBA',"GMXN10Y","TIIE")]) * 100
 #BA10y variable has many NAs between 2007 Oct and 2011 July and BA1y has few NA 
 # values before 2023 Mar. So, analysis is done until 2022 Dec.
 IVRegData_w[c('BA1mo', 'BA10Y')] = na.approx(Liq_w[c('BA_TBA', 'BA_10Y')]*100) 
@@ -35,11 +36,14 @@ IVRegData_w = IVRegData_w[IVRegData_w$Date <= as.Date("2022-12-31"),]
 ## Creating monthly dataframe ------------------------------------------------
 IVRegData_m = EFFR_m
 IVRegData_m$F_Own_pcnt = Mex_m$F_Own_p *100                                            # Adding columns from other datatables
-IVRegData_m[c('MPTBA',"GMXN10Y")] = Mex_m[ ,c('MPTBA',"GMXN10Y")]
+IVRegData_m$IIP = diff(log(IIP[IIP$DATE <= as.Date("2023-12-01") &
+                          IIP$DATE >= as.Date("2005-01-01"), "INDPRO"]), 
+                       lag = 12) * 100            #calculating monthly growth rates as difference in log of IIP from its 12th lag
+IVRegData_m[c('MPTBA',"GMXN10Y","TIIE")] = Mex_m[ ,c('MPTBA',"GMXN10Y", "TIIE")] * 100
 IVRegData_m[c('BA1mo', 'BA10Y')] = na.approx(Liq_m[c('BA_TBA', 'BA_10Y')]*100) 
 IVRegData_m = IVRegData_m[IVRegData_m$Date <= as.Date("2022-12-31"),]
 
-# Running ADF tests  ---------------------------------------------
+# Running ADF tests and creating first differenced data -----------------------
 
 ## on weekly data ----------------------------------------------------------
 
@@ -70,21 +74,21 @@ ADFresults =  apply(IVRegData_m[-1], MARGIN = 2, FUN = ur.df, type = "none")
 ADFresults =  c(ADFresults, apply(apply(IVRegData_m[-1], 2, diff), 
                                   MARGIN = 2, FUN = ur.df, type = "none") )
 for (i in 1:length(ADFresults)){
-  if(i<7){
+  if(i<= ncol(IVRegData_m[-1])){
     print(paste("p-value of ADF stat at levels for",colnames(IVRegData_m)[i+1],"is", 
                 ADFresults[[i]]@testreg$coefficients[1,4]))
   }else{
-    print(paste("p-value of ADF stat at 1st diff for",colnames(IVRegData_m)[i+1],"is", 
+    print(paste("p-value of ADF stat at 1st diff for",colnames(IVRegData_m)[i+2-ncol(IVRegData_m)],"is", 
                 ADFresults[[i]]@testreg$coefficients[1,4]))
   }
 }
 
-# from the results, only 1 mo BA spread is stationary.
+# from the results, only 1 mo BA spread and IIP is stationary.
 
 #taking first differences of EFFR and FO
-IVData_m_stat = IVRegData_m[-1,] #to copy the dates and BA columns, other columns get modified in next line
-IVData_m_stat[-c(1,6)] = apply(IVRegData_m[-c(1,6)], 2, diff)
-#IVData_m_stat[-1] = apply(IVRegData_m[-1], 2, diff)
+IVData_m_stat = IVRegData_m[-1,] #to copy the dates and stationary columns, other columns get modified in next line
+IVData_m_stat[-c(1,4,8)] = apply(IVRegData_m[-c(1,4,8)], 2, diff)
+
 
 
 # 2SLS on Weekly data  ------------------------------------------------------
@@ -156,7 +160,7 @@ Model_1mo$nobs
 ## First stage regressions -------------------------------------------------
 
 ### with 1st differencing ----------------------------------------------
-Stage1 = lm(F_Own_pcnt~ 0 + EFFR, data = IVData_m_stat )
+Stage1 = lm(F_Own_pcnt~ 0 + EFFR + IIP, data = IVData_m_stat )
 summary(Stage1)
 ## without differencing ----------------------------------------------
 Stage1 = lm(F_Own_pcnt~  EFFR, data = IVRegData_m)
@@ -183,21 +187,21 @@ summary(IVreg_10y)
 
 ### On  differences -----------------------------------------------------------
 
-IVreg_1mo = ivreg(BA1mo ~  F_Own_pcnt | EFFR, data = IVData_m_stat )
+IVreg_1mo = ivreg(BA1mo ~  F_Own_pcnt | EFFR + IIP, data = IVData_m_stat )
 summary(IVreg_1mo)
-IVreg_10y = ivreg(BA10Y ~ 0 + F_Own_pcnt | EFFR, data = IVData_m_stat )
+IVreg_10y = ivreg(BA10Y ~ 0 + F_Own_pcnt | EFFR + IIP, data = IVData_m_stat )
 summary(IVreg_10y)
 
 
 ## 2SLS ARIMAX on yields ------------------------------------------------------
 
 ### with 1st differencing ----------------------------------------------
-Stage1 = lm(F_Own_pcnt~ 0 + EFFR, data = IVData_m_stat )
-Model_10y = lm(IVData_m_stat$GMXN10Y ~ 0+ Stage1$fitted.values) #after differencing, this is a white noise. auto.arima suggests (0,1,0) on levels data
+Stage1 = lm(F_Own_pcnt~ 0 + EFFR +IIP , data = IVData_m_stat )
+Model_10y = lm(IVData_m_stat$GMXN10Y ~ 0+ Stage1$fitted.values + IVData_m_stat$TIIE) #after differencing, this is a white noise. auto.arima suggests (0,1,0) on levels data
 summary(Model_10y)
 
 Model_1mo = Arima(IVData_m_stat$MPTBA, order = c(1,0,0),
-                  xreg = Stage1$fitted.values, include.mean = F)
+                  xreg = cbind(Stage1$fitted.values,IVData_m_stat$TIIE), include.mean = F)
 Model_1mo
 (1-pnorm(abs(Model_1mo$coef)/sqrt(diag(Model_1mo$var.coef))))*2                 #calculating p-value
 Model_1mo$nobs
