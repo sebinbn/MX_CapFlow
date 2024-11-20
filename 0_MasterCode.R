@@ -38,8 +38,9 @@ source("Mexicopaper_analysis/1_DataCreate_FO.R")
 source("Mexicopaper_analysis/1_DataCreate_TIIE_xrate.R")
 
 
-# Uses data in EFFR.csv to create EFFR (daily data) and EFFR_w (weekly data)
-source("Mexicopaper_analysis/1_DataCreate_EFFR.R")
+# Uses data in EFFR.csv to create EFFR (daily data) and EFFR_w (weekly data). 
+# Also uses INDPRO.csv to create IIP(monthly data)
+source("Mexicopaper_analysis/1_DataCreate_EFFR_IIP.R")
 
 # Uses data from Banxico in Mex_GD_Maturity.xlsx to create Mex_mat. This is 
 # needed only for 1 plot
