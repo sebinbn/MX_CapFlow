@@ -2,6 +2,7 @@
 # creates a plot of contemporary responses from the IRFs for various periods. 
 # Three plots are created; one for each combination of SVAR variables.
 
+load("SVARResults_byHor.RData") #to load results if SVAR not run in current R session
 
 Dates = rep(as.Date("2000-01-01"),length(samp_dates)) 
 IRF_MH_Data = list() # a list to store the data for three pictures
@@ -42,6 +43,61 @@ for (Spec in 1:3){
 
 
 # Creating Plots ----------------------------------------------------------
+
+## Unified plots ---------------------------------------------------------
+
+FO_avg = data.frame(IRF_MH_Data[[1]]["Dates"], FO = matrix(NaN,length(samp_dates),1) )
+for(i in 1:length(samp_dates)){
+ FO_avg$FO[i] = mean(Mex_FO$F_Own_p[Mex_FO$Date>= samp_dates[[i]][1] & 
+                                      Mex_FO$Date <= samp_dates[[i]][2]])
+}
+
+MergedDat = merge(IRF_MH_Data[[1]][c("Dates", "IRF")],
+                  IRF_MH_Data[[3]][c("Dates", "IRF")], by = "Dates")
+MergedDat = merge(MergedDat,FO_avg, by = "Dates")
+MergedDat$IRF.x = c(MergedDat$IRF.x[1], rollmean(MergedDat$IRF.x,2) )
+MergedDat$IRF.y = c(MergedDat$IRF.x[1], rollmean(MergedDat$IRF.y,2) )
+
+MergedDat = MergedDat[MergedDat$Dates<= as.Date("2015-12-31") & 
+                        MergedDat$Dates >= as.Date("2010-01-01"),]
+
+Merged_long1 = melt(MergedDat[-3], id.vars = "Dates", variable.name = "Spec")
+MergedDat$FO = MergedDat$FO * 1.5 # a scaling to display both lines in 1 graph neatly for 2nd graph
+Merged_long2 = melt(MergedDat[-2], id.vars = "Dates", variable.name = "Spec")
+
+Plot_ON1mo = ggplot(Merged_long1 , aes(x = Dates, y = value, color = Spec)) +
+  geom_line(linewidth = 1.2) +
+  scale_y_continuous(name = 'Contemporaneous Transmission (in pp.)',
+                     sec.axis = sec_axis(transform=~., name="Prop. bonds foreign owned"))+
+  scale_color_discrete(labels = c("IRF.x" = "Impulse Response", 
+                                  "FO" = "Prop. bonds Foreign owned")) +
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y")+
+  labs(x = element_blank(), title = 'Imp = ON, Resp = 1mo') +
+  theme_minimal()+
+  theme(title = element_text(size = 14),
+        axis.text.x = element_text(angle = 45, hjust = 1), 
+        axis.text = element_text(size = 14),
+        axis.title = element_text(size = 14),
+        legend.text = element_text(size = 10),
+        legend.title = element_blank())
+
+Plot_1mo10y = ggplot(Merged_long2 , aes(x = Dates, y = value, color = Spec)) +
+  geom_line(linewidth = 1.2) +
+  scale_y_continuous(name = 'Contemporaneous Transmission (in pp.)',
+                     sec.axis = sec_axis(transform=~./1.5, name="Propn. bonds foreign owned"))+
+  scale_color_discrete(labels = c("IRF.y" = "Impulse Response", 
+                                  "FO" = "Propn. bonds foreign owned ")) +
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y")+
+  labs(x = element_blank(),title = 'Imp = 1mo, Resp = 10yr') +
+  theme_minimal()+
+  theme(title = element_text(size = 14),
+        axis.text.x = element_text(angle = 45,hjust = 1), 
+        axis.text = element_text(size = 14),
+        axis.title = element_text(size = 14),
+        legend.text = element_text(size = 10),
+        legend.title = element_blank())
+
+ggarrange(Plot_1mo10y, Plot_ON1mo, common.legend = T, legend = "bottom")
 
 ## Plotting ON_1mo ---------------------------------------------------------
 
