@@ -28,11 +28,12 @@ BBLiq[,-1] = lapply(BBLiq[,-1], as.numeric)
 
 BBLiq = BBLiq[order(BBLiq$Date),]
 
-# Creating Weekly data ----------------------------------------------------
+#VarsExport = c("TBA", "TBF", "01Y","02Y", "05Y", "10Y", "30Y")
+#VarsExport = c(paste('B', VarsExport, sep = "_" ), 
+#              paste('A', VarsExport, sep = "_" ))
+VarsExport = colnames(BBLiq)[substr(colnames(BBLiq),1,1) %in% c("A","B")]
 
-VarsExport = c("TBA", "TBF", "01Y","02Y", "05Y", "10Y", "30Y")
-VarsExport = c(paste('B', VarsExport, sep = "_" ), 
-               paste('A', VarsExport, sep = "_" ))
+# Creating Weekly data ----------------------------------------------------
 
 Sun  = seq(as.Date("2006-01-01"), as.Date("2023-12-31"), by = "7 days")            #creating vector of Sundays. 2006-01-01 was Sunday.
 
@@ -70,9 +71,9 @@ for(i in 1:length(Month)){
 
 # Calculating bid-ask spread ----------------------------------------------
 
-NewCols = paste('BA' , c("TBA", "TBF", "01Y","02Y", "05Y", "10Y", "30Y") , sep= "_") 
-Liq_w[NewCols] = Liq_w[,2:8] - Liq_w[9:15]
-Liq_m[NewCols] = Liq_m[,2:8] - Liq_m[9:15]
+NewCols = paste('BA' , substr(VarsExport[1:18],3,5) , sep= "_") 
+Liq_w[NewCols] = Liq_w[VarsExport[19:36]] - Liq_w[VarsExport[1:18]]
+Liq_m[NewCols] = Liq_m[VarsExport[19:36]] - Liq_m[VarsExport[1:18]]
 
 colSums(is.na(Liq_w)) #seeing number of missing values
 
