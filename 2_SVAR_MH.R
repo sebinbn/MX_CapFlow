@@ -6,8 +6,8 @@ library(vars)
 
 # Checking NA to understand range to analyzed -------------------------------
 
-checkNA = is.na(Mex_w_d[,c("Date","TIIE","MPTBA","GMXN10Y")])
-Mex_w_d$Date[checkNA[,2]]
+checkNA = is.na(Mex_w_d[,c("Date","TIIE","MPTBA","GMXN30Y")])
+Mex_w_d$Date[checkNA[,3]]
 
 # TIIE available from 2006 until 2023 (all data), 1 month missing from 2023 March
 # and has 4 missing values )
@@ -21,10 +21,10 @@ start_end = c(
                  Mex_w_d$Date <= as.Date("2010-12-31")])
 start_end = which(Mex_w_d$Date %in% start_end) #finding index of the date. Index is easier to loop by
 Mex_w_d$Date[start_end]
-# A check of whether there are any NAs. There should
+# A check of whether there are any NAs. There should be none as the range is selected based on that few lines ago
 check = Mex_w_d[Mex_w_d$Date >= as.Date("2009-01-01") & 
                Mex_w_d$Date <= as.Date("2022-12-31"), 
-               c("Date", "TIIE","MPTBA","GMXN10Y", "MXN_USD") ]
+               c("Date", "TIIE","MPTBA","GMXN30Y", "MXN_USD") ]
 colSums(is.na(check))
 
 # Estimating VAR,SVAR,IRF -------------------------------------------------
@@ -34,13 +34,13 @@ b = matrix(NA,nrow = 3, ncol = 3)
 b[upper.tri(b)] = 0
 
 #Initializing lists to store results
-VARlags = list(ON_1mo = list(), ON_10y = list(), `1mo_10y` = list())   
-VARs = list(ON_1mo = list(), ON_10y = list(), `1mo_10y` = list()) 
-SVARs = list(ON_1mo = list(), ON_10y = list(), `1mo_10y` = list()) 
-IRFs = list(ON_1mo = list(), ON_10y = list(), `1mo_10y` = list()) 
+VARlags = list(ON_1mo = list(), ON_30y = list(), `1mo_30y` = list())   
+VARs = list(ON_1mo = list(), ON_30y = list(), `1mo_30y` = list()) 
+SVARs = list(ON_1mo = list(), ON_30y = list(), `1mo_30y` = list()) 
+IRFs = list(ON_1mo = list(), ON_30y = list(), `1mo_30y` = list()) 
 samp_dates = list() 
 
-SVARVars = c("TIIE","MPTBA","TIIE","GMXN10Y","MPTBA","GMXN10Y") #a vector that stores names of first 2 SVAR variables for the 3 specifications run
+SVARVars = c("TIIE","MPTBA","TIIE","GMXN30Y","MPTBA","GMXN30Y") #a vector that stores names of first 2 SVAR variables for the 3 specifications run
 
 
 for (t in 1:53){
@@ -55,7 +55,7 @@ for (t in 1:53){
       lagchoice = VARselect(samp, lag.max = 4, type = 'none')
       print(lagchoice$selection['AIC(n)'])                                            #The choice of lag according to AIC is always 1
       VARlags[[Spec]]  = c(VARlags[[Spec]] , list(lagchoice) )
-      
+      VARlags[[`1mo_10y`]][[i]]$selection['AIC(n)']
       samp_VAR = VAR(samp, type = "none")
       samp_SVAR = SVAR(samp_VAR,Bmat = b)
       samp_IRF = irf(samp_SVAR, impulse = names(samp)[1], n.ahead = 8,runs = 1000,
@@ -80,7 +80,11 @@ for (t in 1:53){
     
 }} #end of time and spec loops
 
-save(samp_dates, VARlags,VARs,SVARs,IRFs, file = "SVARResults_byHor.RData" )
+
+for(i in 1:53){
+  print(VARlags[['ON_1mo']][[i]]$selection['AIC(n)'])
+}
+save(samp_dates, VARlags,VARs,SVARs,IRFs, file = "SVARResults30y_byHor.RData" )
 
 # Removing unnecessary variables ------------------------------------------
 
