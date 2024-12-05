@@ -10,10 +10,10 @@
 cols = c("Date","SF65216_p","Banxico_p","SF65211_p","SF65214_p","SF65215_p",
          "SF65213_p","SF65218_p")
 
-own_long = melt(Own_Data[Own_Data$Date <= as.Date("2018-12-31") & 
+own_long = melt(Own_Data[Own_Data$Date <= as.Date("2023-12-31") & 
                            Own_Data$Date >= as.Date("2006-01-01"),cols],
                 id.vars = "Date")
-OwnShare_plot = ggplot(data = own_long, aes(x = Date, y = value, color = variable)) +
+Share_plot = ggplot(data = own_long, aes(x = Date, y = value, color = variable)) +
   geom_area(aes(fill = variable)) +
   scale_fill_brewer(labels = c("Others","Banxico","Banks","Invst. funds",
                                "Insurance Co.","Pension funds","Non-residents"),
@@ -26,6 +26,33 @@ OwnShare_plot = ggplot(data = own_long, aes(x = Date, y = value, color = variabl
         axis.title = element_text(size = 16),
         legend.title = element_blank(),legend.text = element_text(size = 14),
         legend.position = "bottom")
+
+Share_plot
+
+# Plot: Value over time ---------------------------------------------------
+
+cols = c("Date","SF65216","Banxico","SF65211","SF65214","SF65215",
+         "SF65213","SF65218")
+
+own_long = melt(Own_Data[Own_Data$Date >= as.Date("2006-01-01") & 
+                           Own_Data$Date <= as.Date("2023-12-31"),
+                           cols],
+                id.vars = "Date")
+Value_plot = ggplot(data = own_long, aes(x = Date, y = value/1000000, color = variable)) +
+  geom_area(aes(fill = variable)) +
+  scale_fill_brewer(labels = c("Others","Banxico","Banks","Invst. funds",
+                               "Insurance Co.","Pension funds","Non-residents"),
+                    palette = "Set3") +
+  guides(color = "none", fill = guide_legend(reverse = TRUE)) +
+  scale_x_date(date_labels = '%Y', date_breaks = "2 year", expand = c(0, 0))+
+  scale_y_continuous(expand = c(0,0))+
+  labs(y = 'Trillions of Pesos', x = element_blank())+ 
+  theme_minimal()+
+  theme(axis.text.x = element_text(size = 14),axis.text.y = element_text(size = 14), 
+        axis.title = element_text(size = 16),
+        legend.title = element_blank(),legend.text = element_text(size = 14),
+        legend.position = "bottom")
+Value_plot
 
 # Plot: Share over time ---------------------------------------------------
 
