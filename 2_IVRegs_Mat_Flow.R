@@ -33,7 +33,7 @@ for (i in 1:ncol(IVRegData_m)-1){
   ADF_level = ur.df(na.omit(IVRegData_m[,i+1]), type = "none")
   ADF_diff = ur.df(diff(na.omit(IVRegData_m[,i+1])), type = "none")
   
-  ADFresults_IV[i,1] = colnames(IVRegData_m)[i+1]
+  ADFresults_IV[i,1] = colnames(IVRegData_m)[i]
   ADFresults_IV[i,2] = ADF_level@teststat
   ADFresults_IV[i,3] = ADF_diff@teststat
   ADFresults_IV[i,4] = ADF_level@testreg$coefficients[1,4]
@@ -71,7 +71,7 @@ for (i in 6:23){
     Y_FO_results$se[i-5] = sqrt(diag(vcov(Y_result)))[1]
   }else{
     Y_result = Arima(IVData_m_stat[,i], order = c(1,0,0),
-                      xreg = cbind(Stage1$fitted.values,IVData_m_stat$TIIE), include.mean = F)
+                     xreg = cbind(Stage1$fitted.values,IVData_m_stat$TIIE), include.mean = F)
     Y_FO_results$coef[i-5] = Y_result$coef[2]
     Y_FO_results$se[i-5] = sqrt(diag(Y_result$var.coef))[2]
   }
