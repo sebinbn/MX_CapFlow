@@ -1,6 +1,7 @@
 # The results of rolling horizon SVAR are regressed on foreign ownership. Uses
 # MergedDat and #MergedCumDat created by 3_IRF_MH.R
 
+#The units of Mex_Fo is share *10, this is adjusted in 3_IRF_MH.R
 
 # Regressions on contemporaneous IRF --------------------------------------
 
