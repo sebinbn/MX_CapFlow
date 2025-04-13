@@ -4,9 +4,9 @@
 # 2. Using 1st stage fitted values as X in ARIMAX model on yields
 
 # packages needed - ivreg, forecast, ur.ca - already loaded by 2_IVRegs_Mat_Flow.R 
-library(lmtest) #for Wald test
+
 library(marginaleffects)
-library(stargazer)
+# library(stargazer) # used to get LaTeX output. Used only once.
 Yield_long = melt(IVData_m_stat[,c(1,19,20,23,22,6:18)], id.vars = "Date") #selecting yields except 1 week in order of maturity
 
 # Testing Coefficient of each Yield --------------------------------------------
@@ -22,6 +22,8 @@ IVData_Long = cbind(Yield_long,
 for (name in c("fit.", "TIIE.")){ 
   colnames(IVData_Long)[colnames(IVData_Long) %in% paste(name,1:4, sep = "")] =
     paste(name,c(1,3,6,9), "m", sep = "")
+  colnames(IVData_Long)[colnames(IVData_Long) %in% paste(name,5:14, sep = "")] =
+    paste(name,1:10, sep = "")
   colnames(IVData_Long)[colnames(IVData_Long) %in% paste(name,15:17, sep = "")] =
     paste(name,c(15,20,30), sep = "")
 }
@@ -32,9 +34,11 @@ formula = paste("value ~ 0", paste(" + ",colnames(IVData_Long)[4:37],
                                    sep = "",collapse  = ""))
 IVLong_result = lm(formula, data = IVData_Long)
 summary(IVLong_result)
-hypotheses(IVLong_result, hypothesis = "fit.30 - fit.1m = 0")
-hypotheses(IVLong_result, hypothesis = "fit.3m - fit.1m = 0")
-linearHypothesis(IVLong_result)
+print(hypotheses(IVLong_result, hypothesis = "fit.30 - fit.1m = 0"))
+#hypotheses(IVLong_result, hypothesis = "fit.10 - fit.1 = 0")
+print(hypotheses(IVLong_result, hypothesis = "TIIE.30 - TIIE.1m = 0"))
+#hypotheses(IVLong_result, hypothesis = "fit.3m - fit.1m = 0")
+
 # Running ARIMA(1,1,0) on all yields
 IVLong_result2 = Arima(IVData_Long[,"value"], order = c(1,0,0),
                  xreg = data.matrix(IVData_Long[,4:37]), include.mean = F)
@@ -61,10 +65,15 @@ IVData_Long1 = cbind(Yield_long,
 
 IVLong1_result = lm("value ~ 0 + fit_S + fit_M + fit_L + TIIE_S + TIIE_M + TIIE_L",
                    data = IVData_Long1)
-summary(IVLong1_result)
-#tFCorr = 1.935 + (8.473 - Stg1_F)/(8.473 - 8.196)* (1.98-1.935)
-#IVLong1_result$
-#stargazer(IVLong1_result)
-#hypotheses(IVLong1_result, hypothesis = "fit_S - fit_L = 0")                     
-                    
-#pdq010 = AutoAR_results[,2] == 0 & AutoAR_results[,3] == 1 & AutoAR_results[,4] ==0
+
+x = summary(IVLong1_result)$coefficients
+tFse = summary(IVLong1_result)$coefficients[1:3,"Std. Error"] *tFCorr
+(1-pnorm(abs(summary(IVLong1_result)$coefficients[1:3,"Estimate"])/tFse))*2
+tFse
+diag(vcov(IVLong1_result))
+hypotheses(IVLong1_result, hypothesis = "TIIE_S - TIIE_L = 0")  
+(1-pnorm(abs(0.508)/0.247))*2
+
+                   
+#stargazer(IVLong1_result)                   
+
