@@ -2,7 +2,7 @@
 # creates a plot of contemporary responses from the IRFs for various periods. 
 # Three plots are created; one for each combination of SVAR variables.
 
-load("SVARResults_byHor.RData") #to load results if SVAR not run in current R session
+load("SVARResultsMovHorzn.RData") #to load results if SVAR not run in current R session
 
 Dates = rep(as.Date("2000-01-01"),length(samp_dates)) 
 IRF_MH_Data = list()    # a list to store the data for three pictures
@@ -13,7 +13,7 @@ for (Spec in 1:3){
   IRFVals = matrix(NaN,length(samp_dates),3) #3 columns for IRF value, upper and lower bound
   CumIRFVals = matrix(NaN,length(samp_dates),1) #1 column for Cum IRF value
   for (i in 1:length(samp_dates)){
-    if(Spec ==1){Dates[i] = samp_dates[[i]][1]}
+    if(Spec ==1){Dates[i] = samp_dates[[i]][1]} #dates need be added only for 1 spec as it is same for other 2
     
     if (Spec == 3){
       IRFVals[i,1] = IRFs[[Spec]][[i]]$irf$MPTBA[,2][1] #picks out first obs of 2nd column from IRFs table
@@ -29,7 +29,7 @@ for (Spec in 1:3){
       CumIRFVals[i,1] = sum(IRFs[[Spec]][[i]]$irf$TIIE[,2]) #sum of 2nd column from IRFs table
     }
     
-  }
+  }#end of date loop
   
   irfDat = data.frame(Dates = Dates, Values = IRFVals)
   colnames(irfDat)[-1] = c("IRF","Up", "Low") 
@@ -47,22 +47,31 @@ for (Spec in 1:3){
 ## Unified plots ---------------------------------------------------------
 
 FO_avg = data.frame(IRF_MH_Data[[1]]["Dates"], FO = matrix(NaN,length(samp_dates),1) ) #copying dates column
+# Creating FO as proportion (no longer used).
+# for(i in 1:length(samp_dates)){
+#  FO_avg$FO[i] = mean(Mex_FO$F_Own_p[Mex_FO$Date>= samp_dates[[i]][1] & 
+#                                       Mex_FO$Date <= samp_dates[[i]][2]] * 10) #converting share to 10% scale so that regression coefficients become responses to 10% increase in owenrship percent
+# }
+#Creating FO as actual value
+
 for(i in 1:length(samp_dates)){
- FO_avg$FO[i] = mean(Mex_FO$F_Own_p[Mex_FO$Date>= samp_dates[[i]][1] & 
-                                      Mex_FO$Date <= samp_dates[[i]][2]])
+  FO_avg$FO[i] = mean(Mex_FO$F_Own[Mex_FO$Date>= samp_dates[[i]][1] & 
+                                       Mex_FO$Date <= samp_dates[[i]][2]]/1000000 ) 
 }
 
 MergedDat = merge(IRF_MH_Data[[1]][c("Dates", "IRF")],
                   IRF_MH_Data[[2]][c("Dates", "IRF")], by ="Dates")
 MergedDat = merge(MergedDat,IRF_MH_Data[[3]][c("Dates", "IRF")], by = "Dates")
 MergedDat = merge(MergedDat,FO_avg, by = "Dates")
-colnames(MergedDat) = c("Date","IRF_ON1mo","IRF_ON10y","IRF_1mo10y","FO")
+colnames(MergedDat) = c("Date","IRF_ON1mo","IRF_ON30y","IRF_1mo30y","FO")
 
 #Creating cumulative data table
 MergedCumDat = merge(CumIRF_MH_Data[[1]],CumIRF_MH_Data[[2]], by = "Dates")
 MergedCumDat = merge(MergedCumDat,CumIRF_MH_Data[[3]], by = "Dates")
 MergedCumDat = merge(MergedCumDat,FO_avg, by = "Dates")
-colnames(MergedCumDat) = c("Date","IRF_ON1mo","IRF_ON10y","IRF_1mo10y","FO")
+colnames(MergedCumDat) = c("Date","IRF_ON1mo","IRF_ON30y","IRF_1mo30y","FO")
+
+
 
 #Converting IRF values to rolling means for smoothening the graph
 MergedDat$IRF.x = c(MergedDat$IRF.x[1], rollmean(MergedDat$IRF.x,2) )
