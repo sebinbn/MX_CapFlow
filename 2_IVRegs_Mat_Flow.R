@@ -59,7 +59,9 @@ IVData_m_stat[ColstoDiff] = apply(IVRegData_m[ColstoDiff], 2, diff)
 ### with 1st differencing ----------------------------------------------
 Stage1 = lm(F_Own ~ 0 + EFFR + IIP, data = IVData_m_stat )
 summary(Stage1)
+
 Stg1_F = summary(Stage1)$fstatistic["value"] 
+tFCorr = 1.935 + (8.473 - Stg1_F)/(8.473 - 8.196)* (1.98-1.935)
 # Calculation of tF se based on Stage 1 F-stat has to be manually done. Current 
 # calculation is based on F-value of 8.39
 
@@ -91,7 +93,6 @@ for (i in 6:23){
   
 }
 
-tFCorr = 1.935 + (8.473 - Stg1_F)/(8.473 - 8.196)* (1.98-1.935)
 Y_FO_results$tFse = Y_FO_results$se*tFCorr
 Y_FO_results$pValue = (1-pnorm(abs(Y_FO_results$coef)/Y_FO_results$tFse))*2
 
@@ -152,4 +153,4 @@ summary(OLS1mo_S)
 # Removing Unnecessary variables ------------------------------------------
 
 rm(ADF_level, ADF_diff, ColstoDiff, Y_result, S_result, res_name, regformula,
-   tFCorr, pick, Stg1_F)
+   pick)
