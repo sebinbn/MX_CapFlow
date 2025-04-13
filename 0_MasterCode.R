@@ -74,7 +74,7 @@ source("Mexicopaper_analysis/2_ARIMAX_Liq.R")
 
 # Runs aforementioned (1) ARIMAX of 10yr and 1mo yield on Proportion of FO and
 # (2) a linear regression of BA spread on FO using EFFR as IV
-source("Mexicopaper_analysis/2_EFFR_IV.R")
+#source("Mexicopaper_analysis/2_EFFR_IV.R") # no longer used
 
 # Following uses EFFR and IIP as instruments. 
 source("Mexicopaper_analysis/2_IVRegs_Mat_Flow.R")
