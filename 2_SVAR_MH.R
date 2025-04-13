@@ -7,22 +7,23 @@ library(vars)
 # Checking NA to understand range to analyzed -------------------------------
 
 checkNA = is.na(Mex_w_d[,c("Date","TIIE","MPTBA","GMXN30Y")])
-Mex_w_d$Date[checkNA[,3]]
+colMeans(checkNA)
+Mex_w_d$Date[checkNA[,4]]
+# TIIE available from 2006 until 2023 (all data), 1mo has missing from 2023 March
+# onwards and 30Y starts 2006 Nov onwards. )
 
-# TIIE available from 2006 until 2023 (all data), 1 month missing from 2023 March
-# and has 4 missing values )
 # Preparing date index for subsetting------------------------------------------
 #I find the first date in Mex_w_d within 7 days of starting the year. Alternately,
 # I could find Sunday date.
 start_end = c(
-  Mex_w_d$Date[Mex_w_d$Date >= as.Date("2009-01-01") & 
-                 Mex_w_d$Date <= as.Date("2009-01-07")],
-  Mex_w_d$Date[Mex_w_d$Date >= as.Date("2010-12-25") & 
-                 Mex_w_d$Date <= as.Date("2010-12-31")])
+  Mex_w_d$Date[Mex_w_d$Date >= as.Date("2007-01-01") & 
+                 Mex_w_d$Date <= as.Date("2007-01-07")],
+  Mex_w_d$Date[Mex_w_d$Date >= as.Date("2008-12-25") & 
+                 Mex_w_d$Date <= as.Date("2008-12-31")])
 start_end = which(Mex_w_d$Date %in% start_end) #finding index of the date. Index is easier to loop by
 Mex_w_d$Date[start_end]
 # A check of whether there are any NAs. There should be none as the range is selected based on that few lines ago
-check = Mex_w_d[Mex_w_d$Date >= as.Date("2009-01-01") & 
+check = Mex_w_d[Mex_w_d$Date >= as.Date("2007-01-01") & 
                Mex_w_d$Date <= as.Date("2022-12-31"), 
                c("Date", "TIIE","MPTBA","GMXN30Y", "MXN_USD") ]
 colSums(is.na(check))
@@ -43,7 +44,7 @@ samp_dates = list()
 SVARVars = c("TIIE","MPTBA","TIIE","GMXN30Y","MPTBA","GMXN30Y") #a vector that stores names of first 2 SVAR variables for the 3 specifications run
 
 
-for (t in 1:53){
+for (t in 1:62){ #66 is determined by just looping until samp_dates creation and seeing when the period ends
   D = start_end + ((t-1)*12)
   samp_dates = c(samp_dates, list(Mex_w_d$Date[D]) )
  
@@ -53,9 +54,9 @@ for (t in 1:53){
     samp = Mex_w_d[D[1]:D[2],SVARVar]
                 
       lagchoice = VARselect(samp, lag.max = 4, type = 'none')
-      print(lagchoice$selection['AIC(n)'])                                            #The choice of lag according to AIC is always 1
+      print(paste("t:", t,", Spec:", Spec, ", lags:",lagchoice$selection['AIC(n)']))                                            #The choice of lag according to AIC is always 1
       VARlags[[Spec]]  = c(VARlags[[Spec]] , list(lagchoice) )
-      VARlags[[`1mo_10y`]][[i]]$selection['AIC(n)']
+      #VARlags[[`1mo_10y`]][[i]]$selection['AIC(n)']
       samp_VAR = VAR(samp, type = "none")
       samp_SVAR = SVAR(samp_VAR,Bmat = b)
       samp_IRF = irf(samp_SVAR, impulse = names(samp)[1], n.ahead = 8,runs = 1000,
@@ -84,7 +85,7 @@ for (t in 1:53){
 for(i in 1:53){
   print(VARlags[['ON_1mo']][[i]]$selection['AIC(n)'])
 }
-save(samp_dates, VARlags,VARs,SVARs,IRFs, file = "SVARResults30y_byHor.RData" )
+save(samp_dates, VARlags,VARs,SVARs,IRFs, file = "SVARResultsMovHorzn.RData" )
 
 # Removing unnecessary variables ------------------------------------------
 
