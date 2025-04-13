@@ -90,4 +90,4 @@ Mex_m[Index,"GMXN10Y"] = na.approx(Mex_m[Index,"GMXN10Y"], na.rm = F)
 
 # Removing unused variables -----------------------------------------------
 
-rm(Sun,V, MergedTab, Week_Data, Index, Month, Month_Data)
+rm(Sun,V, a, MergedTab, Week_Data, Index, Month, Month_Data)
