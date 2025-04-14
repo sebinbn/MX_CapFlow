@@ -1,4 +1,4 @@
-#Old Analysis using percentage foreign ownership and analysis only on 10yr and 1mo
+# Old Analysis using percentage foreign ownership and analysis only on 10yr and 1mo
 
 # This file uses EFFR_w, Liq_w, Mex_w, EFFR_m, Liq_m and Mex_m to run following IV regressions
 # 1. 2SLS regression of bid-ask spreads (in bps) on foreign ownership (in percent points)
