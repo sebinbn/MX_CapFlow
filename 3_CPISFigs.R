@@ -114,6 +114,13 @@ CPIS_MX_sec$Other = rowSums(CPIS_MX_sec[,c("CB","GG", "NP","HH")])
 
 CPIS_MX_sec = CPIS_MX_sec[CPIS_MX_sec$T != 0,]                            # removing rows with no data
 
+
+## Adding proportion columns ---------------------------------------------------
+
+sharecols = colnames(CPIS_MX_sec)[!colnames(CPIS_MX_sec) %in% 
+                                    c('Date', "CB","GG", "NP","HH","NHN","OFT", "T" )]
+CPIS_MX_sec[paste(sharecols, "p", sep = "_")] = CPIS_MX_sec[sharecols]/CPIS_MX_sec$T
+
 # Removing excess data/variables ------------------------------------------
 
 rm(CPIS_GGData, CPIS_MX_Raw, CPIS_MX_long, MX_GG_Index, sem_indx, CPIS_GGDataCols)
@@ -122,7 +129,7 @@ rm(CPIS_GGData, CPIS_MX_Raw, CPIS_MX_long, MX_GG_Index, sem_indx, CPIS_GGDataCol
 # Creating Plots ----------------------------------------------------------
 
 
-## Plot 1 : FO split by country --------------------------------------
+## Plot 1 : FO value by country --------------------------------------
 
 MX_long = melt(CPIS_MX_filled[,c('Date',t5,'Others')],id.vars = "Date")  
 cntry_plot = ggplot(data = MX_long, 
@@ -136,10 +143,9 @@ cntry_plot = ggplot(data = MX_long,
           legend.title = element_blank(),legend.text = element_text(size = 14))
 cntry_plot
 
-## Plot 2 : FO split by country --------------------------------------
+## Plot 2 : FO value by sector --------------------------------------
 
-MX_sec_long = melt(CPIS_MX_sec[,!colnames(CPIS_MX_sec) %in% 
-                                 c("CB","GG", "NP","HH", "NHN","OFT","T")],
+MX_sec_long = melt(CPIS_MX_sec[c("Date","UC","Other","MMF","ODX","NFC","IPF","OFX")],
                    id.vars = "Date")  
 sec_plot = ggplot(data = MX_sec_long, 
                     aes(x = Date, y = value/1000000000, color = variable)) +
@@ -151,3 +157,21 @@ sec_plot = ggplot(data = MX_sec_long,
   theme(axis.text = element_text(size = 14), axis.title = element_text(size = 14),
         legend.title = element_blank(),legend.text = element_text(size = 14))
 sec_plot
+
+## Plot 3 : FO share by sector --------------------------------------
+
+MX_sec_long = melt(CPIS_MX_sec[c("Date","UC_p","Other_p","MMF_p","ODX_p","NFC_p","IPF_p","OFX_p")],
+                   id.vars = "Date")%>%
+  mutate(variable = gsub("_p$", "", variable))%>%
+  mutate(variable = factor(variable,levels = c("UC", "Other", "MMF", "ODX", "NFC", "IPF", "OFX")))  
+
+secShare_plot = ggplot(data = MX_sec_long, 
+                  aes(x = Date, y = value, color = variable)) +
+  geom_area(aes(fill = variable))+
+  scale_fill_brewer(palette = "Set3") +
+  guides(color = "none") +
+  scale_x_date(expand = c(0, 0))+
+  labs(y = 'Billions of USD', x = element_blank(), title = "Sector-split of Mexican FO")+ 
+  theme(axis.text = element_text(size = 14), axis.title = element_text(size = 14),
+        legend.title = element_blank(),legend.text = element_text(size = 14))
+secShare_plot
