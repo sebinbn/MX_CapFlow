@@ -2,7 +2,6 @@
 
 # 1. Plot showing foreign ownership value by country
 # 2. Plot showing foreign ownership value by sector
-# 3. Plot showing foreign ownership share by sector
 # 3. Plot comparing foreign and domestic ownership sector split
 
 
@@ -20,13 +19,11 @@ CPIS_GGData = readRDS(paste(filepath, "CPIS_GG_App/CPIS_GG.Rds", sep = ""))
 #The above data is in wide form, with all countries in one column, and years of 
 #data across columns.The table also contains both annual and semi-annual data
 
-# Subsetting Mexico data
-MX_GG_Index = CPIS_GGData$Counterpart.Country.Name == "Mexico"  
 
 # Create Country-split data ------------------------------------------------
           
 CPIS_GGDataCols= c(1,2,12:74) #extracting country name, code, and yearly data
-MX_GG_Index  = MX_GG_Index & 
+MX_GG_Index  = CPIS_GGData$Counterpart.Country.Name == "Mexico" & 
   CPIS_GGData$Indicator.Code ==  'I_A_D_T_T_BP6_USD' & 
   CPIS_GGData$Counterpart.Sector.Code == 'GG' &
   CPIS_GGData$Sector.Code == 'T'
@@ -70,7 +67,7 @@ CPIS_MX_filled[t5] = na.locf(CPIS_MX[t5],fromLast = T) #carrying back next obs t
 
 CPIS_GGDataCols= c(1,2,9,10,12:74) #extracting country name & code, sector name & code,and yearly data
 
-MX_GG_Index  = MX_GG_Index & 
+MX_GG_Index  = CPIS_GGData$Counterpart.Country.Name == "Mexico" & 
   CPIS_GGData$Indicator.Code ==  'I_A_D_T_T_BP6_USD' & 
   CPIS_GGData$Counterpart.Sector.Code == 'GG'
 CPIS_MX_Raw = CPIS_GGData[MX_GG_Index, CPIS_GGDataCols]
@@ -80,7 +77,7 @@ CPIS_MX_Raw = CPIS_MX_Raw[CPIS_MX_Raw$X2023S2 != "",] #removing annual data rows
 CPIS_MX_Raw = CPIS_MX_Raw[,c(T,T,grepl("S", colnames(CPIS_MX_Raw)[-c(1:2)]) ) ] #removing columns which held the annual data 
 
 CPIS_MX_Raw[,5:43] = data.frame(lapply(CPIS_MX_Raw[,5:43], as.numeric))
-colnames(CPIS_MX_Raw)
+
 # USA is missing sector classification for 2016S2 - 2018S1. The USA total in 
 # these years is allocated to each sector in the proportion of 2016S1.
 sec_propn = CPIS_MX_Raw[CPIS_MX_Raw$Country.Name == "United.States" & 
@@ -102,28 +99,24 @@ CPIS_MX_sec = cbind(Date = as.Date(dates),
                                         group = CPIS_MX_Raw$Sector.Code,
                                         na.rm = T))))
 
-# There are 17 sectors according to CPIS metadata. CPIS_GGData has only 12. Of these
-# 12, some are composite of others. So total is lower than the sum of 11 categories.
+# There are 17 sectors according to CPIS metadata. CPIS_GGData has only 12.
+#unique(CPIS_GGData$Sector.Name)
+#Of these 12, some are composite of others. So total is lower than the sum of 11 categories.
 
 #CPIS_MX_sec$T - rowSums(CPIS_MX_sec[,2:12])
 
 # Excluding composite categories of NHN and OFT, remaining is added as 'Unclassified' - UC
 CPIS_MX_sec$UC = CPIS_MX_sec$T - rowSums(CPIS_MX_sec[,c(2:7,9,10,12)])  
 
-CPIS_MX_sec$Other = rowSums(CPIS_MX_sec[,c("CB","GG", "NP","HH")])
-
+CPIS_MX_sec$Others = rowSums(CPIS_MX_sec[,c("CB","GG", "NP","HH","UC","NFC")])
+CPIS_MX_sec$InvFund = rowSums(CPIS_MX_sec[,c("OFX","MMF")])
 CPIS_MX_sec = CPIS_MX_sec[CPIS_MX_sec$T != 0,]                            # removing rows with no data
 
 
 ## Adding proportion columns ---------------------------------------------------
 
-sharecols = colnames(CPIS_MX_sec)[!colnames(CPIS_MX_sec) %in% 
-                                    c('Date', "CB","GG", "NP","HH","NHN","OFT", "T" )]
+sharecols = c("InvFund","IPF","ODX","Others")
 CPIS_MX_sec[paste(sharecols, "p", sep = "_")] = CPIS_MX_sec[sharecols]/CPIS_MX_sec$T
-
-# Removing excess data/variables ------------------------------------------
-
-rm(CPIS_GGData, CPIS_MX_Raw, CPIS_MX_long, MX_GG_Index, sem_indx, CPIS_GGDataCols)
 
 
 # Creating Plots ----------------------------------------------------------
@@ -160,18 +153,32 @@ sec_plot
 
 ## Plot 3 : FO share by sector --------------------------------------
 
-MX_sec_long = melt(CPIS_MX_sec[c("Date","UC_p","Other_p","MMF_p","ODX_p","NFC_p","IPF_p","OFX_p")],
+MX_sec_long = melt(CPIS_MX_sec[CPIS_MX_sec$Date >as.Date("2014-08-30"),
+                               c("Date","Others_p","ODX_p","IPF_p","InvFund_p")],
                    id.vars = "Date")%>%
   mutate(variable = gsub("_p$", "", variable))%>%
-  mutate(variable = factor(variable,levels = c("UC", "Other", "MMF", "ODX", "NFC", "IPF", "OFX")))  
+  mutate(variable = factor(variable,levels = c( "Others", "ODX", "InvFund","IPF")))  
 
-secShare_plot = ggplot(data = MX_sec_long, 
+NR_Share_plot = ggplot(data = MX_sec_long, 
                   aes(x = Date, y = value, color = variable)) +
   geom_area(aes(fill = variable))+
-  scale_fill_brewer(palette = "Set3") +
-  guides(color = "none") +
-  scale_x_date(expand = c(0, 0))+
-  labs(y = 'Billions of USD', x = element_blank(), title = "Sector-split of Mexican FO")+ 
-  theme(axis.text = element_text(size = 14), axis.title = element_text(size = 14),
-        legend.title = element_blank(),legend.text = element_text(size = 14))
-secShare_plot
+  scale_fill_brewer(labels = c("Others","Banks","Invst.Funds","IPF"),
+                    palette = "Dark2") +
+  guides(color = "none",fill = guide_legend(reverse = TRUE)) +
+  scale_x_date(date_labels = '%Y', date_breaks = "2 year", expand = c(0, 0))+
+  scale_y_continuous(expand = c(0,0))+
+  labs(y = element_blank(), x = element_blank(), title = "Non-Residents")+ 
+  theme(axis.text.x = element_text(size = 16),axis.text.y = element_text(size = 14),
+        axis.title = element_text(size = 16),
+        legend.title = element_blank(),legend.text = element_text(size = 14),
+        legend.position = "bottom")
+NR_Share_plot
+
+#R_Share_plot is created in 3_Fig_OwnShare.R
+ShareComp = ggarrange(R_Share_plot, NR_Share_plot, common.legend = T, legend = "bottom")
+ShareComp
+
+# Removing excess data/variables ------------------------------------------
+
+rm(CPIS_GGData, CPIS_MX_Raw, CPIS_MX_long, MX_GG_Index, sem_indx, CPIS_GGDataCols,
+   t5, t5not, Tot, sec_propn, dates)
