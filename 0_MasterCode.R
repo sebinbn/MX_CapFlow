@@ -8,7 +8,7 @@ library(readxl)       #for importing data from xlsx
 library(ggplot2)      #for plots
 library(reshape2)     #for using melt() which converts data to long format convenient for ggplot
 library(ggpubr)       #for multiple plots in one figure using ggarrange()
-library(zoo)
+library(zoo)          #for na.approx
 
 
 
@@ -104,11 +104,13 @@ Mat_plot
 source("Mexicopaper_analysis/3_Fig_OwnShare.R")                                 # time plot of share of long term debt Foreign ownership as value and share
 OwnShare_plot
 
+source("Mexicopaper_analysis/3_CPISFigs.R")
+cntry_plot
+sec_plot
+secShare_plot
+
 source("Mexicopaper_analysis/3_Fig_yields.R")                                   # time plot of yields. creates 3 plots, uses only 1 of them
 Yield_plot                                                                          
-
-source("Mexicopaper_analysis/3_Fig_barchart.R")                                   # barchart showing change in proportion
-barchart                                                                          # plot doesn't show up if in another code. So, plot is saved as barchart and then called to be displayed here. 
 
 source("Mexicopaper_analysis/3_IRFs.R") 
 
