@@ -30,10 +30,16 @@ summary(regON30yCum)
 
 mean(MergedCumDat$IRF_1mo30y)
 mean(MergedCumDat$IRF_ON1mo)
+mean(MergedCumDat$IRF_ON30y)
 AR1mo30yCum = Arima(MergedCumDat$IRF_1mo30y, order = c(1,0,0), xreg = cbind(MergedCumDat$FO))
 (1-pnorm(abs(AR1mo30yCum$coef)/sqrt(diag(AR1mo30yCum$var.coef))))*2
+AR1mo30yCum
 ARON1moCum = Arima(MergedCumDat$IRF_ON1mo, order = c(1,0,0), xreg = cbind(MergedCumDat$FO))
 (1-pnorm(abs(ARON1moCum$coef)/sqrt(diag(ARON1moCum$var.coef))))*2
+ARON1moCum
+ARON30yCum = Arima(MergedCumDat$IRF_ON30y, order = c(1,0,0), xreg = cbind(MergedCumDat$FO))
+(1-pnorm(abs(ARON30yCum$coef)/sqrt(diag(ARON30yCum$var.coef))))*2
+ARON30yCum
 
 # Cochrane-Orcutt Procedure ----------------------------------------
 plot(reg1mo30yCum$residuals)
