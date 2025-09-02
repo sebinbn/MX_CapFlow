@@ -3,6 +3,7 @@
 
 #The units of Mex_Fo is the actual value.
 
+library(forecast)
 # Regressions on contemporaneous IRF --------------------------------------
 
 reg1mo30y = lm(IRF_1mo30y~FO, data = MergedDat)
@@ -25,6 +26,10 @@ summary(regON1moCum)
 regON30yCum = lm(IRF_ON30y~FO, data = MergedCumDat)
 summary(regON30yCum)
 
+# Regressions with AR1 errors
+
+mean(MergedCumDat$IRF_1mo30y)
+mean(MergedCumDat$IRF_ON1mo)
 AR1mo30yCum = Arima(MergedCumDat$IRF_1mo30y, order = c(1,0,0), xreg = cbind(MergedCumDat$FO))
 (1-pnorm(abs(AR1mo30yCum$coef)/sqrt(diag(AR1mo30yCum$var.coef))))*2
 ARON1moCum = Arima(MergedCumDat$IRF_ON1mo, order = c(1,0,0), xreg = cbind(MergedCumDat$FO))
