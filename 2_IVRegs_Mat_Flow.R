@@ -19,12 +19,11 @@ IVRegData_m = EFFR_m
 # Adding columns from other datatables
 IVRegData_m["TIIE"] = Mex_m["TIIE"]*100
 IVRegData_m["F_Own"] = Mex_m["F_Own"]/1000 #converting to billions of Pesos 
-IVRegData_m$IIP = diff(log(IIP[IIP$DATE <= as.Date("2023-12-01") &
+IVRegData_m$d_ln_IIP = diff(log(IIP[IIP$DATE <= as.Date("2023-12-01") &
                                  IIP$DATE >= as.Date("2005-01-01"), "INDPRO"]), 
                        lag = 12) * 100            #calculating monthly growth rates as difference in log of IIP from its 12th lag
 IVRegData_m[colnames(Mex_m)[2:19]] = na.approx(Mex_m[colnames(Mex_m)[2:19]]) * 100
 IVRegData_m[colnames(Liq_m)[38:55]] = na.approx(Liq_m[colnames(Liq_m)[38:55]])*100
-IVRegData_m["F_Own"]
 IVRegData_m = IVRegData_m[IVRegData_m$Date <= as.Date("2022-12-31"),]
 colMeans(is.na(IVRegData_m)) #values which are missing at the beginning or end stay missing.
 
@@ -45,19 +44,20 @@ for (i in 1:ncol(IVRegData_m)-1){
   ADFresults_IV[i,5] = ADF_diff@testreg$coefficients[1,4]
 }
 
-# from the results, only 1 week, 1,3,6,9 mo,1Y BA spread and IIP is stationary.
+# From the results tabulated in ADFresults_IV, BA spreads of tenors 1 week, 1,3,
+# 6,9 mo,and 1Y,  and log diff IIP is stationary. All yields are non-stationary.
 
 #taking first differences
 IVData_m_stat = IVRegData_m[-1,] #to copy the dates and stationary columns, other columns get modified in next line
-ColstoDiff = !colnames(IVRegData_m) %in% c("Date","IIP", "BA_TBA", "BA_TBC","BA_TBF",
-                                           "BA_TBI","BA_01Y","BA_TB1")
+ColstoDiff = !colnames(IVRegData_m) %in% c("Date","d_ln_IIP", "BA_TBA", "BA_TBC",
+                                           "BA_TBF", "BA_TBI","BA_01Y","BA_TB1")
 IVData_m_stat[ColstoDiff] = apply(IVRegData_m[ColstoDiff], 2, diff)
 
 
 ## First stage regressions -------------------------------------------------
 
 ### with 1st differencing ----------------------------------------------
-Stage1 = lm(F_Own ~ 0 + EFFR + IIP, data = IVData_m_stat )
+Stage1 = lm(F_Own ~ 0 + EFFR + d_ln_IIP, data = IVData_m_stat )
 summary(Stage1)
 
 Stg1_F = summary(Stage1)$fstatistic["value"] 
@@ -96,19 +96,20 @@ for (i in 6:23){
 Y_FO_results$tFse = Y_FO_results$se*tFCorr
 Y_FO_results$pValue = (1-pnorm(abs(Y_FO_results$coef)/Y_FO_results$tFse))*2
 
-#displaying results of 30Y and 1mo for filling up table
+#display results of 30Y and 1mo to fill LaTeX in paper for TIIE and AR1
 summary(Y_results$GMXN30Y)
-Y_results$MPTBA
+summary(Y_results$MPTBA)
 (1-pnorm(abs(Y_results$MPTBA$coef)/sqrt(diag(Y_results$MPTBA$var.coef))))*2
+
 
 ## Reduced form regressions on yields ------------------------------------------
 
 #Running reduced form OLS on 30yr and 1mo yields
-OLS30yr = lm(GMXN30Y ~ 0 + EFFR + TIIE + IIP, data = IVData_m_stat)
+OLS30yr = lm(GMXN30Y ~ 0 + EFFR + TIIE + d_ln_IIP, data = IVData_m_stat)
 summary(OLS30yr)
 
 OLS1mo = Arima(IVData_m_stat$MPTBA, order = c(1,0,0), 
-               xreg = data.matrix(IVData_m_stat[,c("EFFR","IIP","TIIE")]),
+               xreg = data.matrix(IVData_m_stat[,c("EFFR","d_ln_IIP","TIIE")]),
                include.mean = F)
 OLS1mo
 (1-pnorm(abs(OLS1mo$coef)/sqrt(diag(OLS1mo$var.coef))))*2                 #calculating p-value
@@ -123,10 +124,10 @@ S_FO_results = data.frame(Var = colnames(IVRegData_m)[24:41], coef = matrix(NaN,
 #### with 1st differencing ----------------------------------------------
 for (i in 24:41){
   if( colnames(IVData_m_stat)[i] %in% c("BA_TBA","BA_TBF","BA_TBC","BA_TBI","BA_TB1","BA_01Y") ){
-    regformula = paste(colnames(IVData_m_stat)[i], "~ F_Own | EFFR + IIP" )
+    regformula = paste(colnames(IVData_m_stat)[i], "~ F_Own | EFFR + d_ln_IIP" )
     pick = 2
   }else{
-    regformula = paste(colnames(IVData_m_stat)[i], "~ 0 + F_Own | EFFR + IIP" )
+    regformula = paste(colnames(IVData_m_stat)[i], "~ 0 + F_Own | EFFR + d_ln_IIP" )
     pick = 1
   }
   S_result = ivreg(regformula, data = IVData_m_stat )
@@ -137,16 +138,17 @@ for (i in 24:41){
   
 }
 S_FO_results$tFse = S_FO_results$se*tFCorr
+S_FO_results$pValue = (1-pnorm(abs(S_FO_results$coef)/S_FO_results$tFse))*2
 
-#displaying results of 30Yr and 1mo for filling in table
-summary(S_results[["BA_TBA"]])
-summary(S_results[["BA_30Y"]])
+#display results of 30Y and 1mo to fill LaTeX in paper for TIIE and AR1
+summary(S_results$BA_30Y)
+summary(S_results$BA_TBA)
 
 ## Reduced form regressions on spreads ------------------------------------------
-OLS30yr_S = lm(BA_30Y ~  0 + EFFR + TIIE + IIP , data = IVData_m_stat)
+OLS30yr_S = lm(BA_30Y ~  0 + EFFR + d_ln_IIP , data = IVData_m_stat)
 summary(OLS30yr_S)
 
-OLS1mo_S = lm(BA_TBA ~  EFFR + TIIE + IIP , data = IVData_m_stat)
+OLS1mo_S = lm(BA_TBA ~  EFFR  + d_ln_IIP , data = IVData_m_stat)
 summary(OLS1mo_S)
 
 
