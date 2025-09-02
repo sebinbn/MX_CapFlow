@@ -2,7 +2,7 @@
 # creates a plot of contemporary responses from the IRFs for various periods. 
 # Three plots are created; one for each combination of SVAR variables.
 
-load("SVARResultsMovHorzn.RData") #to load results if SVAR not run in current R session
+#load("SVARResultsMovHorzn.RData") #to load results if SVAR not run in current R session
 
 Dates = rep(as.Date("2000-01-01"),length(samp_dates)) 
 IRF_MH_Data = list()    # a list to store the data for three pictures

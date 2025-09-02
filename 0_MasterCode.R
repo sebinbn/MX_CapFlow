@@ -1,4 +1,4 @@
-# This code replicates the SVAR results in Mexico paper.
+# This code replicates the results in Mexico paper including tables and figures..
 
 
 
@@ -29,8 +29,8 @@ source("Mexicopaper_analysis/1_DataCreate_BByield.R")
 source("Mexicopaper_analysis/1_DataCreate_BBLiq.R")
 
 # Uses data from Banxico in Mex_GD_ownership.xlsx and creates Own_Data with all
-# ownership data, Mex_FO with foreign ownership data. Also, exports Mex_FO. Creates
-# start_date_Own showing dates when data starts.
+# ownership data, Mex_FO with foreign ownership data. Also, has the option to 
+# export Mex_FO.csv. Creates start_date_Own showing dates when data starts.
 source("Mexicopaper_analysis/1_DataCreate_FO.R")
 
 # Uses data from Banxico in TIIE_daily.xlsx and MXN_USD_daily.xlsx. It creates 
@@ -64,7 +64,7 @@ source("Mexicopaper_analysis/2_Elasticity.R")
 
 # Using Mex_w, ADF test is run on the 4 SVAR variables both at levels and first
 # differences. The results are stored in matrix ADF_tab. Returns first differenced
-# Mex_w_d used in 2_SVAR.R
+# Mex_w_d used in 2_SVAR_MH.R
 source("Mexicopaper_analysis/2_ADFtest.R")
 
 # Runs (1) ARIMAX of 10yr and 1mo yield on Proportion of Foreign Ownership
@@ -80,15 +80,15 @@ source("Mexicopaper_analysis/2_ARIMAX_Liq.R")
 source("Mexicopaper_analysis/2_IVRegs_Mat_Flow.R")
 source("Mexicopaper_analysis/2_IVRegs_Joint.R")
 
-# SVAR analysis. Uses Mex_W and Mex_d
-#source("Mexicopaper_analysis/2_SVAR.R")
-#source("Mexicopaper_analysis/2_SVAR_TIIE.R")
-
 # Running SVAR on Moving horizon. This saves output to a RData file.
 source("Mexicopaper_analysis/2_SVAR_MH.R")
 # OLS regressions on results from SVAR Moving Horizon
 source("Mexicopaper_analysis/2_SVAR_MH_regs.R")
 
+##### Deprecated Analysis ####
+# SVAR analysis. Uses Mex_W and Mex_d
+#source("Mexicopaper_analysis/2_SVAR.R")
+#source("Mexicopaper_analysis/2_SVAR_TIIE.R")
 
 
 # Creating figures --------------------------------------------------------
