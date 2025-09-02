@@ -67,7 +67,7 @@ for (i in 1:length(a) ){
 # Creating FO Data --------------------------------------------------------
 Mex_FO = Own_Data[,c("Date","SF65218", "SF65218_p")]                              #Extracting foreign ownership data from all ownership data.
 colnames(Mex_FO)[-1] = c("F_Own", "F_Own_p")
-write.csv(Mex_FO, "Mexicopaper_Data/Mex_FO_daily.csv")                            #exporting file to be used in creating a common datatable to be used for SVAR
+#write.csv(Mex_FO, "Mexicopaper_Data/Mex_FO_daily.csv")                            #exporting file to be used in creating a common datatable to be used for SVAR
 
 
 
