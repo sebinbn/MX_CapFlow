@@ -1,6 +1,8 @@
 # This code uses Own_Data to create following figures.
-# 1. A time plot showing varying shares of ownership by classes over time.
-# 2. A time plot showing varying value of ownership by classes over time.
+# 1. Plot showing varying shares of ownership by classes over time.
+# 2. Plot showing varying value of ownership by classes over time.
+# 3. Plot showing Domestic vs Foreign share over time
+# 4: Plot showing sector shares within Domestic investors over time.
 
 
 #Earlier pics not used anymore.
@@ -63,9 +65,54 @@ Value_plot = ggplot(data = own_long, aes(x = Date, y = value/1000000, color = va
         legend.position = "bottom")
 Value_plot
 
+# Plot 3: Domestic vs Foreign share over time ----------------------------------
+
+own_long = melt(Own_Data[Own_Data$Date <= as.Date("2023-12-31") & 
+                           Own_Data$Date >= as.Date("2006-01-01"),c("Date","SF65217","SF65218")],
+                id.vars = "Date")
+RvNR_plot = ggplot(data = own_long, aes(x = Date, y = value/1000000, color = variable)) +
+  geom_area(aes(fill = variable)) +
+  scale_fill_brewer(labels = c("Residents","Non-residents"),
+                    palette = "Set3") +
+  guides(color = "none", fill = guide_legend(reverse = TRUE)) +
+  scale_x_date(date_labels = '%Y', date_breaks = "2 year", expand = c(0, 0))+
+  scale_y_continuous(expand = c(0,0))+
+  labs(y = 'Trillions of Pesos', x = element_blank())+ 
+  theme(axis.text.x = element_text(size = 16),axis.text.y = element_text(size = 14), 
+        axis.title = element_text(size = 16),
+        legend.title = element_blank(),legend.text = element_text(size = 14),
+        legend.position = c(0.15,0.9))
+
+RvNR_plot
+
+# Plot 4: Sectors as share of Domestic ----------------------------------
+
+## Creating Domestic Proportion columns -----------------------------------------
+Own_Data$IPF = rowSums(Own_Data[c("SF65215","SF65213")])
+Own_Data$Banks= rowSums(Own_Data[c("Banxico","SF65211")])
+cols = c("SF65216","Banks","SF65214","IPF")
+Own_p_R = cbind(Date = Own_Data$Date, Own_Data[cols]/Own_Data$SF65217)
+
+own_long = melt(Own_p_R[Own_p_R$Date <= as.Date("2023-12-31") & 
+                          Own_p_R$Date >= as.Date("2015-01-01"),],id.vars = "Date")
+R_Share_plot = ggplot(data = own_long, aes(x = Date, y = value, color = variable)) +
+  geom_area(aes(fill = variable)) +
+  scale_fill_brewer(labels = c("Others","Banks","Invst.Funds","IPF"),
+                    palette = "Dark2") +
+  guides(color = "none", fill = guide_legend(reverse = TRUE)) +
+  scale_x_date(date_labels = '%Y', date_breaks = "2 year", expand = c(0, 0))+
+  scale_y_continuous(expand = c(0,0))+
+  labs(y = 'Share', x = element_blank(), title = "Residents")+ 
+  theme(axis.text.x = element_text(size = 16),axis.text.y = element_text(size = 14), 
+        axis.title = element_text(size = 16),
+        legend.title = element_blank(),legend.text = element_text(size = 14),
+        legend.position = "bottom")
+
+R_Share_plot
+
 # Removing excess variables -----------------------------------------------
 
-rm(own_long)# own_long_all,own_long1,own_long2)
+rm(own_long,a, cols)# own_long_all,own_long1,own_long2)
 
 
 # Unused plots ------------------------------------------------------------
