@@ -9,12 +9,14 @@ library(ggplot2)      #for plots
 library(reshape2)     #for using melt() which converts data to long format convenient for ggplot
 library(ggpubr)       #for multiple plots in one figure using ggarrange()
 library(zoo)          #for na.approx
-
-
+library(tvReg)        #for tvvar and tvirf
+library(urca)         #for ur.df
+library(vars)
+library(beepr)        #for beep() to make a sound after code is run
 
 #setwd("C:/Users/sbnidhir/OneDrive - University Of Houston/Research/MP transmission/Data_Analysis")
 #setwd("C:/Users/sebin/OneDrive - University Of Houston/Research/MP transmission/Data_Analysis")
-setwd('../')                                                                      #goes up one level to Data_Analysis folder
+setwd('../')          # goes up one level to Data_Analysis folder
 rm(list = ls())
 
 # Cleaning Data -----------------------------------------------------
@@ -67,10 +69,6 @@ source("Mexicopaper_analysis/2_Elasticity.R")
 # Mex_w_d used in 2_SVAR_MH.R
 source("Mexicopaper_analysis/2_ADFtest.R")
 
-# Runs (1) ARIMAX of 10yr and 1mo yield on Proportion of Foreign Ownership
-# (2) a linear regression of BA spread on FO. Uses Mex_W. This suffers from 
-# endogeneity.
-source("Mexicopaper_analysis/2_ARIMAX_Liq.R")
 
 # Runs aforementioned (1) ARIMAX of 10yr and 1mo yield on Proportion of FO and
 # (2) a linear regression of BA spread on FO using EFFR as IV
@@ -80,15 +78,9 @@ source("Mexicopaper_analysis/2_ARIMAX_Liq.R")
 source("Mexicopaper_analysis/2_IVRegs_Mat_Flow.R")
 source("Mexicopaper_analysis/2_IVRegs_Joint.R")
 
-# Running SVAR on Moving horizon. This saves output to a RData file.
-source("Mexicopaper_analysis/2_SVAR_MH.R")
-# OLS regressions on results from SVAR Moving Horizon
-source("Mexicopaper_analysis/2_SVAR_MH_regs.R")
 
-##### Deprecated Analysis ####
-# SVAR analysis. Uses Mex_W and Mex_d
-#source("Mexicopaper_analysis/2_SVAR.R")
-#source("Mexicopaper_analysis/2_SVAR_TIIE.R")
+#source("Mexicopaper_analysis/2_TVVAR.R")
+source("Mexicopaper_analysis/2_TVVAR_Daily.R")
 
 
 # Creating figures --------------------------------------------------------
@@ -115,3 +107,21 @@ Yield_plot
 source("Mexicopaper_analysis/3_IRFs.R") 
 
 source("Mexicopaper_analysis/3_IV_Mat.R")                                       # creates plot of IV results over time 
+
+
+# No longer used ----------------------------------------------------------
+
+
+# Runs (1) ARIMAX of 10yr and 1mo yield on Proportion of Foreign Ownership
+# (2) a linear regression of BA spread on FO. Uses Mex_W. This suffers from 
+# endogeneity.
+#source("Mexicopaper_analysis/2_ARIMAX_Liq.R")
+
+# SVAR analysis. Uses Mex_W and Mex_d
+#source("Mexicopaper_analysis/2_SVAR.R")
+#source("Mexicopaper_analysis/2_SVAR_TIIE.R")
+
+# Running SVAR on Moving horizon. This saves output to a RData file.
+#source("Mexicopaper_analysis/2_SVAR_MH.R")
+# OLS regressions on results from SVAR Moving Horizon
+#source("Mexicopaper_analysis/2_SVAR_MH_regs.R")
