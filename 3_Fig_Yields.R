@@ -4,16 +4,17 @@
 # 3. Plotting various short term yields over time from weekly data for comparison.
 
 
-# Fig 1 - TIIE,1mo and 10yr from weekly data -----------------------------------
+# Fig 1 - TIIE,1mo and 30yr from weekly data -----------------------------------
 
-Mex_long <- melt(Mex_w[Mex_w$Date <=as.Date("2018-12-31"),
-                       c("Date","TIIE","MPTBA","GMXN10Y")], id.vars = "Date")
+Mex_long <- melt(Mex_w[Mex_w$Date <=as.Date("2023-12-31")&
+                         Mex_w$Date >=as.Date("2008-03-31"),
+                       c("Date","TIIE","MPTBA","GMXN30Y")], id.vars = "Date")
 
 Yield_plot = ggplot(Mex_long, aes(x = Date, y = value, color = variable)) +
   geom_line(linewidth = 1.25) +
   labs(y = "Yield on Mexican govt bonds (in %)", x = element_blank()) +
   scale_x_date(date_breaks = "2 year", date_labels = "%Y", expand = c(0,0)) +
-  scale_color_discrete(labels = c( "Overnight rate", "1 month yield", "10 year yield")) + 
+  scale_color_discrete(labels = c( "Overnight rate", "1 month yield", "30 year yield")) + 
   theme_minimal()+
   theme(legend.position = c(0.8, 0.9),legend.title = element_blank(),
         legend.text = element_text(size = 14),
@@ -94,6 +95,33 @@ ggplot(Mex_long, aes(x = Date, y = value, color = variable)) +
   labs(y = "Slopes", x = element_blank()) +
   scale_x_date(date_breaks = "2 year", date_labels = "%Y") +
   scale_color_discrete(labels = c("10yr - Policy rate", "10yr - TIIE", "10yr - 1 mo")) + #scale_color_discrete(labels = c("Overnight yield", "10 year yield")) +
+  geom_hline(yintercept = 0, color = 'red', linetype = "dashed", linewidth = 1.2) +
+  theme_minimal()+
+  theme(legend.position = c(0.8, 0.9),legend.title = element_blank(),
+        legend.text = element_text(size = 14),
+        legend.background = element_rect(linetype="solid",colour ="darkblue"),
+        axis.text = element_text(size = 14), axis.title = element_text(size = 15))
+
+# Fig 5 - Slope (trying out spreads for motivation slide) -------------------------------------
+
+
+Mex_w$`10y-Tgt` = Mex_w$GMXN10Y - Mex_w$Tgt_rate
+Mex_w$`1mo-Tgt` = Mex_w$MPTBA - Mex_w$Tgt_rate
+Mex_w$`1mo-TIIE` = Mex_w$MPTBA - Mex_w$TIIE
+Mex_long <- melt(Mex_w[Mex_w$Date <= as.Date("2023-12-31") & 
+                         Mex_w$Date >= as.Date("2008-04-01"),
+                       c("Date" ,"GMXN10Y","1mo-Tgt")],id.vars = "Date")
+
+Mex_long <- melt(Mex_w[Mex_w$Date <= as.Date("2023-12-31") & 
+                         Mex_w$Date >= as.Date("2008-04-01"),
+                       c("Date" ,"1mo-Tgt")],id.vars = "Date")
+
+ggplot(Mex_long, aes(x = Date, y = value, color = variable)) +
+  geom_line(linewidth = 1.25) +
+  labs(y = "Slopes", x = element_blank()) +
+  scale_x_date(date_breaks = "2 year", date_labels = "%Y") +
+  #scale_color_discrete(labels = c("10yr - Policy rate", "1mo - Policy rate")) +
+  scale_color_discrete(labels = c("10yrmo - Policy rate")) + 
   geom_hline(yintercept = 0, color = 'red', linetype = "dashed", linewidth = 1.2) +
   theme_minimal()+
   theme(legend.position = c(0.8, 0.9),legend.title = element_blank(),

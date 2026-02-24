@@ -99,7 +99,24 @@ CPIS_MX_sec = cbind(Date = as.Date(dates),
                                         group = CPIS_MX_Raw$Sector.Code,
                                         na.rm = T))))
 
-# There are 17 sectors according to CPIS metadata. CPIS_GGData has only 12.
+# There are 17 sectors according to CPIS metadata (Metadata_CPIS_09-11-2024 07-42-11-59_panel.csv).
+# These are
+# 1. Central Bank -	CB, 2. Deposit Taking Corporations -	DC,
+# 3. Depository-taking Corporations except the Central Bank	ODX
+# 4. Financial Corporations	FC, 5. General Government	GG
+# 6. Held by other financial institutions, of which: Insurance	OFI
+# 7.Held by other financial institutions, of which: Mutual funds	OFM
+# 8. Held by other financial institutions, of which: Other	OFO
+# 9.Nonfinancial Corporations, Households and NPISHs	NHN
+# 10. Nonfinancial Corporations, Households and NPISHs: Households	HH
+# 11. Nonfinancial Corporations, Households and NPISHs: Nonfinancial Corporations	NFC
+# 12. Nonfinancial Corporations, Households and NPISHs: NPISHs	NP
+# 13. Other Financial Corporations	OFT
+# 14. Other Financial Corporations: Insurance Corporations and Pension Funds	IPF
+# 15. Other Financial Corporations: Money Market Funds	MMF
+# 16. Other Financial Corporations: Other	OFX, 17. Total Holdings	T
+
+#CPIS_GGData has only 12 categories. These are:
 #unique(CPIS_GGData$Sector.Name)
 #Of these 12, some are composite of others. So total is lower than the sum of 11 categories.
 
@@ -131,7 +148,8 @@ cntry_plot = ggplot(data = MX_long,
   scale_fill_brewer(palette = "Set2") +
   guides(color = "none") +
   scale_x_date(expand = c(0, 0))+
-    labs(y = 'Billions of USD', x = element_blank(), title = "Country-split of Mexican FO")+ 
+  scale_y_continuous(expand = expansion(mult = c(0, 0.05)))+
+    labs(y = 'Billions of USD', x = element_blank())+ 
     theme(axis.text = element_text(size = 14), axis.title = element_text(size = 14),
           legend.title = element_blank(),legend.text = element_text(size = 14))
 cntry_plot
@@ -165,7 +183,8 @@ NR_Share_plot = ggplot(data = MX_sec_long,
   scale_fill_brewer(labels = c("Others","Banks","Invst.Funds","IPF"),
                     palette = "Dark2") +
   guides(color = "none",fill = guide_legend(reverse = TRUE)) +
-  scale_x_date(date_labels = '%Y', date_breaks = "2 year", expand = c(0, 0))+
+  scale_x_date(date_labels = '%Y', date_breaks = "2 year", expand = c(0, 0),
+               limits = as.Date(c("2014-12-31", "2023-12-31")) )+
   scale_y_continuous(expand = c(0,0))+
   labs(y = element_blank(), x = element_blank(), title = "Non-Residents")+ 
   theme(axis.text.x = element_text(size = 16),axis.text.y = element_text(size = 14),

@@ -1,8 +1,9 @@
 # This code uses Own_Data to create following figures.
 # 1. Plot showing varying shares of ownership by classes over time.
 # 2. Plot showing varying value of ownership by classes over time.
-# 3. Plot showing Domestic vs Foreign share over time
-# 4: Plot showing sector shares within Domestic investors over time.
+# 3. Plot showing Domestic vs Foreign value over time
+# 4. Plot showing Domestic vs Foreign share over time
+# 5: Plot showing sector shares within Domestic investors over time.
 
 
 #Earlier pics not used anymore.
@@ -32,7 +33,7 @@ Share_plot = ggplot(data = own_long, aes(x = Date, y = value, color = variable))
   guides(color = "none", fill = guide_legend(reverse = TRUE)) +
   scale_x_date(date_labels = '%Y', date_breaks = "2 year", expand = c(0, 0))+
   scale_y_continuous(expand = c(0,0))+
-  labs(y = 'Ownership share in govt bonds O/S', x = element_blank())+ 
+  labs(y = 'Share', x = element_blank())+ 
   theme(axis.text.x = element_text(size = 16),axis.text.y = element_text(size = 14), 
         axis.title = element_text(size = 16),
         legend.title = element_blank(),legend.text = element_text(size = 14),
@@ -65,7 +66,7 @@ Value_plot = ggplot(data = own_long, aes(x = Date, y = value/1000000, color = va
         legend.position = "bottom")
 Value_plot
 
-# Plot 3: Domestic vs Foreign share over time ----------------------------------
+# Plot 3: Domestic vs Foreign Value over time ----------------------------------
 
 own_long = melt(Own_Data[Own_Data$Date <= as.Date("2023-12-31") & 
                            Own_Data$Date >= as.Date("2006-01-01"),c("Date","SF65217","SF65218")],
@@ -77,7 +78,7 @@ RvNR_plot = ggplot(data = own_long, aes(x = Date, y = value/1000000, color = var
   guides(color = "none", fill = guide_legend(reverse = TRUE)) +
   scale_x_date(date_labels = '%Y', date_breaks = "2 year", expand = c(0, 0))+
   scale_y_continuous(expand = c(0,0))+
-  labs(y = 'Trillions of Pesos', x = element_blank())+ 
+  labs(y = 'Trillions of Mexican Pesos', x = element_blank())+ 
   theme(axis.text.x = element_text(size = 16),axis.text.y = element_text(size = 14), 
         axis.title = element_text(size = 16),
         legend.title = element_blank(),legend.text = element_text(size = 14),
@@ -85,7 +86,41 @@ RvNR_plot = ggplot(data = own_long, aes(x = Date, y = value/1000000, color = var
 
 RvNR_plot
 
-# Plot 4: Sectors as share of Domestic ----------------------------------
+# Plot 4: Domestic vs Foreign Share over time ----------------------------------
+
+own_long = melt(Own_Data[Own_Data$Date <= as.Date("2023-12-31") & 
+                           Own_Data$Date >= as.Date("2008-04-01"),c("Date","R_p","NR_p")],
+                id.vars = "Date")
+RvNR_Share_plot = ggplot(data = own_long, aes(x = Date, y = value, color = variable)) +
+  geom_area(aes(fill = variable)) +
+  scale_fill_brewer(labels = c("Residents","Non-residents"),
+                    palette = "Set3") +
+  guides(color = "none", fill = guide_legend(reverse = TRUE)) +
+  scale_x_date(date_labels = '%Y', date_breaks = "2 year", expand = c(0, 0))+
+  scale_y_continuous(expand = c(0,0))+
+  labs(y = 'Share', x = element_blank())+ 
+  theme(axis.text.x = element_text(size = 20),axis.text.y = element_text(size = 16), 
+        axis.title = element_text(size = 18),
+        legend.title = element_blank(),legend.text = element_text(size = 20),
+        legend.position = c(0.15,0.9))
+
+RvNR_Share_plot
+w = (1 - (Own_Data$NR_p - 0.2)/0.05)
+Own_Data$weight =  (1 - (Own_Data$NR_p - 0.2)/0.05)
+hist(Own_Data[Own_Data$Date <= as.Date("2023-12-31") & 
+        Own_Data$Date >= as.Date("2008-04-01"),]$NR_p, 
+      breaks = 30, # main = "Histogram of Foreign Owned Share",
+  xlab = "Foreign Owned Share", col = "gray")
+
+ggplot(Own_Data[Own_Data$Date <= as.Date("2023-12-31") & 
+                  Own_Data$Date >= as.Date("2008-04-01"),"NR_p"],
+  aes(x = NR_p)
+) +
+  geom_histogram( aes(y = after_stat(density)), fill = "steelblue", color = "black")+
+  #geom_density(fill = "steelblue", alpha = 0.4)  +
+  labs(  x = "Foreign Owned Share",   y = "Density"  ) +
+  theme_minimal()
+# Plot 5: Sectors as share of Domestic ----------------------------------
 
 ## Creating Domestic Proportion columns -----------------------------------------
 Own_Data$IPF = rowSums(Own_Data[c("SF65215","SF65213")])
@@ -94,7 +129,7 @@ cols = c("SF65216","Banks","SF65214","IPF")
 Own_p_R = cbind(Date = Own_Data$Date, Own_Data[cols]/Own_Data$SF65217)
 
 own_long = melt(Own_p_R[Own_p_R$Date <= as.Date("2023-12-31") & 
-                          Own_p_R$Date >= as.Date("2015-01-01"),],id.vars = "Date")
+                          Own_p_R$Date >= as.Date("2014-12-31"),],id.vars = "Date")
 R_Share_plot = ggplot(data = own_long, aes(x = Date, y = value, color = variable)) +
   geom_area(aes(fill = variable)) +
   scale_fill_brewer(labels = c("Others","Banks","Invst.Funds","IPF"),

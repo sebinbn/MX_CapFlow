@@ -9,7 +9,7 @@
 
 library(ivreg)
 library(forecast) #for using auto.arima and Arima
-library(urca) # for ur.df
+#library(urca) # for ur.df
 
 
 # Monthly Analysis --------------------------------------------------------
@@ -26,6 +26,13 @@ IVRegData_m[colnames(Mex_m)[2:19]] = na.approx(Mex_m[colnames(Mex_m)[2:19]]) * 1
 IVRegData_m[colnames(Liq_m)[38:55]] = na.approx(Liq_m[colnames(Liq_m)[38:55]])*100
 IVRegData_m = IVRegData_m[IVRegData_m$Date <= as.Date("2022-12-31"),]
 colMeans(is.na(IVRegData_m)) #values which are missing at the beginning or end stay missing.
+
+# GMXN01YR available only from 2008-04-30. So data subsetted to start from this point.
+# GMXN09YR is missing after 2018-05-31. these are filled in as the average of the 
+# 8 and 10 year yields.
+IVRegData_m = IVRegData_m[IVRegData_m$Date > as.Date("2008-04-15"),]
+IVRegData_m$GMXN09Y[is.na(IVRegData_m$GMXN09Y)] = rowMeans(
+  IVRegData_m[is.na(IVRegData_m$GMXN09Y), c("GMXN08Y", "GMXN10Y")])
 
 ## Running ADF tests and creating first differenced data -----------------------
 ## on monthly data ---------------------------------------------

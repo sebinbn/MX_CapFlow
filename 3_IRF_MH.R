@@ -2,7 +2,7 @@
 # creates a plot of contemporary responses from the IRFs for various periods. 
 # Three plots are created; one for each combination of SVAR variables.
 
-#load("SVARResultsMovHorzn.RData") #to load results if SVAR not run in current R session
+load("SVARResultsMovHorzn.RData") #to load results if SVAR not run in current R session
 
 Dates = rep(as.Date("2000-01-01"),length(samp_dates)) 
 IRF_MH_Data = list()    # a list to store the data for three pictures
@@ -47,17 +47,20 @@ for (Spec in 1:3){
 ## Unified plots ---------------------------------------------------------
 
 FO_avg = data.frame(IRF_MH_Data[[1]]["Dates"], FO = matrix(NaN,length(samp_dates),1) ) #copying dates column
+
 # Creating FO as proportion (no longer used).
-# for(i in 1:length(samp_dates)){
-#  FO_avg$FO[i] = mean(Mex_FO$F_Own_p[Mex_FO$Date>= samp_dates[[i]][1] & 
-#                                       Mex_FO$Date <= samp_dates[[i]][2]] * 10) #converting share to 10% scale so that regression coefficients become responses to 10% increase in owenrship percent
-# }
+for(i in 1:length(samp_dates)){
+ FO_avg$FO[i] = mean(Mex_FO$F_Own_p[Mex_FO$Date>= samp_dates[[i]][1] &
+                                      Mex_FO$Date <= samp_dates[[i]][2]] * 10) 
+ #converting share to 10% scale so that regression coefficients become responses to 10% increase in owenrship percent
+}
+
 #Creating FO as actual value
 
-for(i in 1:length(samp_dates)){
-  FO_avg$FO[i] = mean(Mex_FO$F_Own[Mex_FO$Date>= samp_dates[[i]][1] & 
-                                       Mex_FO$Date <= samp_dates[[i]][2]]/1000000 ) 
-}
+# for(i in 1:length(samp_dates)){
+#   FO_avg$FO[i] = mean(Mex_FO$F_Own[Mex_FO$Date>= samp_dates[[i]][1] & 
+#                                        Mex_FO$Date <= samp_dates[[i]][2]]/1000000 ) 
+# }
 
 MergedDat = merge(IRF_MH_Data[[1]][c("Dates", "IRF")],
                   IRF_MH_Data[[2]][c("Dates", "IRF")], by ="Dates")
@@ -74,8 +77,8 @@ colnames(MergedCumDat) = c("Date","IRF_ON1mo","IRF_ON30y","IRF_1mo30y","FO")
 
 
 #Converting IRF values to rolling means for smoothening the graph
-MergedDat$IRF.x = c(MergedDat$IRF.x[1], rollmean(MergedDat$IRF.x,2) )
-MergedDat$IRF.y = c(MergedDat$IRF.x[1], rollmean(MergedDat$IRF.y,2) )
+# MergedDat$IRF.x = c(MergedDat$IRF.x[1], rollmean(MergedDat$IRF.x,2) )
+# MergedDat$IRF.y = c(MergedDat$IRF.x[1], rollmean(MergedDat$IRF.y,2) )
 
 #truncating range of data to avoid too much variation
 MergedDat = MergedDat[MergedDat$Dates<= as.Date("2015-12-31") & 

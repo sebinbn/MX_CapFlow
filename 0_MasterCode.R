@@ -11,7 +11,7 @@ library(ggpubr)       #for multiple plots in one figure using ggarrange()
 library(zoo)          #for na.approx
 library(tvReg)        #for tvvar and tvirf
 library(urca)         #for ur.df
-library(vars)
+library(vars)         #for running VAR, IRF
 library(beepr)        #for beep() to make a sound after code is run
 
 #setwd("C:/Users/sbnidhir/OneDrive - University Of Houston/Research/MP transmission/Data_Analysis")
@@ -58,15 +58,10 @@ source("Mexicopaper_analysis/1_TabCreate_SVAR.R")
 
 # Analysis ----------------------------------------------------------------
 
-# Elasticity for each owner class for few yields are calculated using Own_Data,
-# BBYield, TIIE and Mex_w. It returns Tab_Elast_d for daily data and Tab_Elast_w
-# for weekly data
-#need to adapt this for new Mex_w which has all variables
-source("Mexicopaper_analysis/2_Elasticity.R")
-
-# Using Mex_w, ADF test is run on the 4 SVAR variables both at levels and first
-# differences. The results are stored in matrix ADF_tab. Returns first differenced
-# Mex_w_d used in 2_SVAR_MH.R
+# Using Mex_d, it creates weekday data stored in Mex_d_TV. ADF test is run on 
+# the 4 SVAR variables both at levels and first differences. The results are stored
+# in matrix ADF_result_l for levels and ADF_result_d for first differences. Mex_d_TV
+# and Mex_d_TV_diff are used in 2_TVVAR_v1.R
 source("Mexicopaper_analysis/2_ADFtest.R")
 
 
@@ -74,13 +69,14 @@ source("Mexicopaper_analysis/2_ADFtest.R")
 # (2) a linear regression of BA spread on FO using EFFR as IV
 #source("Mexicopaper_analysis/2_EFFR_IV.R") # no longer used
 
-# Following uses EFFR and IIP as instruments. 
-source("Mexicopaper_analysis/2_IVRegs_Mat_Flow.R")
-source("Mexicopaper_analysis/2_IVRegs_Joint.R")
+# Following uses EFFR and IIP as instruments.
+source("Mexicopaper_analysis/2_IV_Stage1.R")
+source("Mexicopaper_analysis/2_Stage2_SURE.R")
 
 
 #source("Mexicopaper_analysis/2_TVVAR.R")
-source("Mexicopaper_analysis/2_TVVAR_Daily.R")
+#source("Mexicopaper_analysis/2_TVVAR_Daily.R")
+source("Mexicopaper_analysis/2_TVVAR_v1.R")
 
 
 # Creating figures --------------------------------------------------------
@@ -106,16 +102,25 @@ Yield_plot
 
 source("Mexicopaper_analysis/3_IRFs.R") 
 
-source("Mexicopaper_analysis/3_IV_Mat.R")                                       # creates plot of IV results over time 
+source("Mexicopaper_analysis/3_IVFig.R")                                       # creates plot of IV results over time 
 
-
+apply(Mex_d_TV_diff[,-1], 2, sd)
+plot(Mex_d_TV_diff$MPTBA)
 # No longer used ----------------------------------------------------------
 
+# Elasticity for each owner class for few yields are calculated using Own_Data,
+# BBYield, TIIE and Mex_w. It returns Tab_Elast_d for daily data and Tab_Elast_w
+# for weekly data
+#need to adapt this for new Mex_w which has all variables
+source("Mexicopaper_analysis/2_Elasticity.R")
 
 # Runs (1) ARIMAX of 10yr and 1mo yield on Proportion of Foreign Ownership
 # (2) a linear regression of BA spread on FO. Uses Mex_W. This suffers from 
 # endogeneity.
 #source("Mexicopaper_analysis/2_ARIMAX_Liq.R")
+
+# source("Mexicopaper_analysis/2_IVRegs_Mat_Flow.R")
+# source("Mexicopaper_analysis/2_IVRegs_Joint.R")
 
 # SVAR analysis. Uses Mex_W and Mex_d
 #source("Mexicopaper_analysis/2_SVAR.R")

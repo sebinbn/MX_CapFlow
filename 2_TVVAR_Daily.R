@@ -1,86 +1,96 @@
-# This code runs time varying VAR on daily data
-# It runs ADF test to check stationarity, then first differences it.
 
-library(urca)
-library(vars)
+#  Estimate time varying VAR and IRFs and confidence intervals for
+# 1. Three variable VAR with 
+#  1.1 lag choice 5 and lag choice 1
+#  1.2 Use wild and wild2 bootstrap
 
-# Creating DataTable for Regression ---------------------------------------
+# Running TVVAR indexed by FO ---------------------------------------------------
 
+VAR3_MPTBA = CumIRF3_MPTBA = list(p5 = list(), p1 = list())
+CI3_MPTBA = list(p5B2 = list(), p5B1 = list(),p1B2 = list(), p1B1 = list())
 
-# Daily data is available in Mex_d for all variables.
+VAR3_MPTBF = CumIRF3_MPTBF = list(p5 = list(), p1 = list())
+CI3_MPTBF = list(p5B2 = list(), p5B1 = list(),p1B2 = list(), p1B1 = list())
 
-# I first scroll through the daily data to find where are a lot of continuous NAs,
-# and subset the data to avoid these.
-# GMXN10Y is missing in 2007 and upto 15-02-2008. Subset data to start from March 2008.
-# MPTBA only available until 2023 MArch. subset upto 31-12-2022.
-
-# A series of weekdays are created and then populated. To get a VAR lag order that is meaningful,
-# say 5 for 5 weekdays, it is better not to remove NAs that also would remove market holidays.
-# Removing NAs was tried initially, but decided to go with former method as VARsekect showed 5 for
-# most combinations, but higher lags for some other 3 variable combinations.
-
-all_days <- seq.Date(from = as.Date("2008-03-01"), to = as.Date("2022-12-31"),
-                     by = "day")
-x <- data.frame(Date = all_days[!(weekdays(all_days) %in% c("Saturday", "Sunday"))] )
-Mex_d_TV = merge(x, Mex_d, by.x = "Date", all.x = T)
-
-Vars_ADF = c("MPTBA", "GMXN10Y","GMXN30Y", "TIIE", "MXN_USD", "F_Own", "F_Own_p")
-Mex_d_TV[Vars_ADF] = na.approx(Mex_d_TV[Vars_ADF], na.rm = F)
-
-# following code is modified and run thrice for each of the variables
-colSums(apply(Mex_d_TV,2, FUN = is.na))
-
-# #Now, remove rows where all three interest rates are missing. These are presumably market holidays.
-# Mex_d_TV = Mex_d_TV[!(is.na(Mex_d_TV$GMXN10Y) & is.na(Mex_d_TV$GMXN30Y) & 
-#                         is.na(Mex_d_TV$MPTBA)),]
-# 
-# x = Mex_d_TV[is.na(Mex_d_TV$GMXN10Y),c("Date","MPTBA", "GMXN10Y","GMXN30Y")]
-# weekdays(x$Date) #these are not weekends for any of the 3
-# rm(x)
-# #Now there are 12 GMXN10Y and GMXN30Y missing and 65 MPTBA missing.None of these
-# # are weekends. Of the 12, 11 are the same days when both 10 and 30 are missing. 
-# # So, dates where GMXN10Y and GMNX30Y are missing are dropped. The remaining MPTBA
-# # missing are filled in with linear interpolation.
-# 
-# Mex_d_TV = Mex_d_TV[!(is.na(Mex_d_TV$GMXN10Y) | is.na(Mex_d_TV$GMXN30Y)),]
-# Mex_d_TV$MPTBA = na.approx(Mex_d_TV$MPTBA,na.rm = F)
+loc = 1
+for (p in c(1,5)){
+  start_time = Sys.time()
+  VAR3_MPTBF[[loc]] = tvVAR(Mex_d_TV_diff[c("TIIE","MPTBF","MXN_USD")], p = p,
+                              type = "none", bw = rep(0.1,4),tkernel = "Epa")
+  print(paste("VAR(",p,") estimated in", 
+              round(difftime(Sys.time(), start_time, units = "mins"),2), "mins"))
+  start_time = Sys.time()
+  result_CIRF  = tvIRF(VAR3_z_MPTBF[[loc]], cumulative = T,
+                                 impulse ="TIIE",response = "MPTBF",
+                                 bw.cov = 0.1)
+  
+  CumIRF3_MPTBF[[loc]] = result_CIRF
+  print(paste("IRF(",p,") estimated in",
+              round(difftime(Sys.time(), start_time, units = "mins"),2), "mins"))
+  start_time = Sys.time()
+  B_loc = loc * 2 - 1
+  loc = loc +1
+  for (B in c("wild","wild2")){
+    CI3_MPTBF[[B_loc]] = confint(result_CIRF, level = 0.9, tboot = B)
+    print(paste("Confint for IRF(",p,") with",B,"errors estimated in",
+                round(difftime(Sys.time(), start_time, units = "mins"),2), "mins"))
+    start_time = Sys.time()
+    B_loc = B_loc + 1
+  }
+  
+}
 
 
-# Running ADF Test --------------------------------------------------------
+# Running 4 variable SVAR -------------------------------------------------
 
-Mex_d_TV_diff = lapply(Mex_d_TV[,Vars_ADF ], diff)                            #lapply has to be used because diff() does not work on dartaframes
-Mex_d_TV_diff  = data.frame(Date = Mex_d_TV$Date[-1], Mex_d_TV_diff)
+VAR4_MPTBA = CumIRF4_MPTBA = list(p5 = list(), p1 = list())
+CI4_MPTBA = list(p5B2 = list(), p5B1 = list(),p1B2 = list(), p1B1 = list())
 
-colSums(apply(Mex_d_TV_diff,2, FUN = is.na))
-ADF_result_l = apply(Mex_d_TV[Vars_ADF], 2, FUN = ur.df, type = "none",
-                     selectlags = "AIC" )
-ADF_result_d = apply(Mex_d_TV_diff[Vars_ADF], 2, FUN = ur.df, type = "none",
-                     selectlags = "AIC" )
+loc = 1
+for (p in c(1,5)){
+  start_time = Sys.time()
+  VAR4_MPTBA[[loc]] = tvVAR(Mex_d_TV_diff[c("TIIE","MPTBA","GMXN30Y", "MXN_USD")],
+                              p = p, type = "none", bw = rep(100,4),tkernel = "Epa")
+  print(paste("VAR(",p,") estimated in", 
+              round(difftime(Sys.time(), start_time, units = "mins"),2), "mins"))
+  start_time = Sys.time()
+  result_CIRF  = tvIRF(VAR4_MPTBA[[loc]], cumulative = T,
+                       impulse =c("TIIE","MPTBA"), response = c("MPTBA","GMXN30Y"),
+                       bw.cov = 100)
+  
+  CumIRF4_MPTBA[[loc]] = result_CIRF
+  print(paste("IRF(",p,") estimated in", 
+              round(difftime(Sys.time(), start_time, units = "mins"),2), "mins"))
+  start_time = Sys.time()
+  B_loc = loc * 2 - 1
+  loc = loc +1
+  for (B in c("wild","wild2")){
+    CI4_MPTBF[[B_loc]] = confint(result_CIRF, level = 0.9, tboot = B)
+    print(paste("Confint for IRF(",p,") with",B,"errors estimated in",
+                round(difftime(Sys.time(), start_time, units = "mins"),2), "mins"))
+    start_time = Sys.time()
+    B_loc = B_loc + 1
+  }
+  
+}
+save(VAR3_z_MPTBA,VAR3_z_MPTBF, VAR4_z_MPTBA, VAR4_z_MPTBF,
+     CumIRF3_z_MPTBA,CumIRF3_z_MPTBF, CumIRF4_z_MPTBA, CumIRF4_z_MPTBF,
+     CI3_z_MPTBA,CI3_z_MPTBF, CI4_z_MPTBA, CI4_z_MPTBF,
+     file = "savedRResults/Bootstrap_Oct3.RData")
 
-for (i in 1:length(Vars_ADF)){
-  x = summary(ADF_result_l[[i]])@testreg$coefficients[1,c("t value", "Pr(>|t|)")]
-  print(paste("Levels - ", Vars_ADF[i], ". t-stat - ", round(x[1],3),
-              "p-val - ", round(x[2],3) ))
-  x = summary(ADF_result_d[[i]])@testreg$coefficients[1,c("t value", "Pr(>|t|)")]
-  print(paste("Diff - ", Vars_ADF[i], ". t-stat - ", round(x[1],3),
-              "p-val - ", round(x[2],3) ))
-} #shows that all variables have unit root and are stationary at first differences.
 
-
-
-# Running TVVAR against time ---------------------------------------------------
 
 #Initializing lists to store results
 VARlags = list(ON_1mo = list(), ON_10y = list(), ON_30y = list(), 
                `1mo_10y` = list(), `1mo_30y` = list(), ON_1mo_30y = list())  
-VARs = VARs_z = CumIRFs = CumIRFs_z = Regs = ARIMAs = ARIMA_pVals = VARlags
+#VARs = VARs_z = CumIRFs = CumIRFs_z = Regs = ARIMAs = ARIMA_pVals = VARlags
 
 
 VARSpec = list(c("TIIE","MPTBA","MXN_USD"),
                c("TIIE","GMXN10Y","MXN_USD"),
-               c("TIIE","GMXN30Y","MXN_USD"),
-               c("MPTBA","GMXN10Y","MXN_USD"),
-               c("MPTBA","GMXN30Y","MXN_USD"),
+               c("TIIE","MPTBI","GMXN30Y","MXN_USD"),
+               c("TIIE","MPTBC","GMXN30Y","MXN_USD"),
+               c("TIIE","MPTBF","GMXN30Y","MXN_USD"),
                c("TIIE","MPTBA","GMXN30Y","MXN_USD"))
 
 for(Spec in 6:6){
@@ -91,24 +101,34 @@ for(Spec in 6:6){
   # print(summary(VARs[[Spec]]))
   # VARs[[Spec]] = tvVAR(Mex_d_TV_diff[VARSpec[[Spec]]], p =1, type = "none",
   #                      tkernel = "Epa", est = "lc", bw = c(20,20,20,20))
-
-  # VARs_z[[Spec]] = tvVAR(Mex_w_TV[VARSpec[[Spec]]], p =1, type = "none", 
-  #                      z = Mex_w_TV$F_Own_p )
   # 
-  CumIRFs[[Spec]] = tvIRF(VARs[[Spec]], impulse = VARSpec[[Spec]][1:2],
-                          response = VARSpec[[Spec]][2:3], cumulative = T)
-  # CumIRFs_z[[Spec]] = tvIRF(VARs_z[[Spec]], impulse = VARSpec[[Spec]][1],
-  #                         response = VARSpec[[Spec]][2], cumulative = T)
+  VARs_z_ON_1mo = tvVAR(Mex_d_TV_diff[VARSpec[[Spec]]], p =1, type = "none",
+                       z = Mex_d_TV$F_Own_p[-1],bw = rep(0.1,4))
+  # # 
+  # CumIRFs[[Spec]] = tvIRF(VARs[[Spec]], impulse = VARSpec[[Spec]][1:2],
+  #                         response = VARSpec[[Spec]][2:3], cumulative = T)
+  # CumIRFs_z[[Spec]] = tvIRF(VARs_z[[Spec]], impulse = VARSpec[[Spec]][1:2],
+  #                           response = VARSpec[[Spec]][2:3], cumulative = T)
+  CumIRFs_z_ON_1mo = tvIRF(VARs_z_ON_1mo, impulse = VARSpec[[Spec]][1:2],
+                            response = VARSpec[[Spec]][2:3], cumulative = T)
   
+
   # if(Spec<4){
-   Regs[[Spec]] = lm(CumIRFs[[Spec]]$irf$TIIE[,1,11]~ Mex_d_TV$F_Own_p[-c(1,2)])
-   Regs[[Spec]] = lm(CumIRFs[[Spec]]$irf$MPTBA[,2,11]~ Mex_d_TV$F_Own_p[-c(1,2)])
-  #   ARIMAs[[Spec]] = Arima(CumIRFs[[Spec]]$irf$TIIE[,,11], order = c(1,0,0),
-  #                          xreg = diff(Mex_w_TV$F_Own_p))
+   # x = 1:length(CumIRFs[[Spec]]$irf$TIIE[,1,11])
+   # Regs[[Spec]] = lm(CumIRFs_z[[Spec]]$irf$TIIE[,1,11]~ Mex_d_TV$F_Own_p[-c(1,2)]
+   #                   + x)
+   # ARON1moCum = Arima(MergedCumDat$IRF_ON1mo, order = c(1,0,0), xreg = cbind(MergedCumDat$FO_prop))
+   # 
+  #  Regs[[Spec]] = lm(CumIRFs_z[[Spec]]$irf$MPTBA[,2,11]~ Mex_d_TV$F_Own_p[-c(1,2)]
+  #                    )
+    # ARIMAs[[Spec]] = Arima(CumIRFs[[Spec]]$irf$TIIE[,1,11], order = c(1,0,0),
+    #                        xreg = Mex_d_TV$F_Own_p[-c(1,2)])
+    # ARIMA_pVals[[Spec]] = (1-pnorm(abs(ARIMAs[[Spec]]$coef)/
+    #                                  sqrt(diag(ARIMAs[[Spec]]$var.coef))))*2
   # } else{
-  #    Regs[[Spec]] = lm(CumIRFs[[Spec]]$irf$MPTBA[,,11]~ Mex_w_TV$F_Own_p[-1])
-  #    ARIMAs[[Spec]] = Arima(CumIRFs[[Spec]]$irf$MPTBA[,,11], order = c(1,0,0),
-  #                        xreg = diff(Mex_w_TV$F_Own_p))
+     Regs[[Spec]] = lm(CumIRFs_z_ON_1mo$irf$TIIE[,1,11]~ Mex_d_TV$F_Own_p[-c(1,2)])
+     ARIMAs[[Spec]] = Arima(CumIRFs_z_ON_1mo$irf$TIIE[,1,11], order = c(1,0,0),
+                         xreg = Mex_d_TV$F_Own_p[-c(1,2)])
   #  }
   # ARIMA_pVals[[Spec]] = 
   #   (1-pnorm(abs(ARIMAs[[Spec]]$coef)/sqrt(diag(ARIMAs[[Spec]]$var.coef))))*2
@@ -116,17 +136,37 @@ for(Spec in 6:6){
   # print(summary(Regs[[Spec]]))
   # print(summary(ARIMAs[[Spec]]))
 }
-VARs$ON_1mo_30y$coefficients$TIIE
-length(CumIRFs[[Spec]]$irf$TIIE[,1,11])
-length(Mex_d_TV$F_Own_p)
-plot( Mex_d_TV$F_Own[-c(1,2)],CumIRFs[[Spec]]$irf$TIIE[,1,11])
-plot( Mex_d_TV$F_Own_p[-c(1,2)],CumIRFs[[Spec]]$irf$MPTBA[,2,11])
-plot(CumIRFs[[Spec]]$irf$TIIE[,1,11])
-plot(CumIRFs[[Spec]]$irf$MPTBA[,2,11])
 
+summary(Regs[[6]])
+dwtest(Regs[[4]])
+
+summary(ARIMAs[[6]])
+dwtest(Regs[[4]])
+
+IRF_CI = confint(CumIRFs_z[[5]])
+IRF_CI_ON_1mo = confint(CumIRFs_z[[6]])
+IRF_CI_ON_1mo_90 = confint(CumIRFs_z[[6]] ,level = 0.9)
+beep(4)
+save(VARs,CumIRFs, CumIRFs_z,IRF_CI,IRF_CI_ON_1mo, IRF_CI_ON_1mo_90, file = "TVVARResults_25092025.RData" )
+load("TVVARResults_25092025.RData")
+# Plotting Results --------------------------------------------------------
+
+
+plot(Mex_d_TV$F_Own_p[-c(1,2)],CumIRFs_z[[Spec]]$irf$TIIE[,1,11])
+plot( Mex_d_TV$F_Own_p[-c(1,2)],CumIRFs_z[[Spec]]$irf$MPTBF[,2,11])
+plot(Mex_d_TV$F_Own_p)
+plot(CumIRFs_z_ON_1mo$irf$TIIE[,1,11])
+plot(CumIRFs[[Spec]]$irf$MPTBA[,2,11])
+plot(CumIRFs[[Spec]]$irf$TIIE[,1,1])
 IRFResults = data.frame(Date = Mex_d_TV_diff$Date[-1], 
-           ON_1mo = CumIRFs[[Spec]]$irf$TIIE[,1,11],
-           mo1_30Y = CumIRFs[[Spec]]$irf$MPTBA[,2,11],
+           ON_1mo = CumIRFs[[6]]$irf$TIIE[,1,11],
+           mo1_30Y = CumIRFs[[6]]$irf$MPTBA[,2,11],
+           ON_3mo = CumIRFs[[4]]$irf$TIIE[,1,11],
+           mo3_30Y = CumIRFs[[4]]$irf$MPTBC[,2,11],
+           ON_6mo = CumIRFs[[5]]$irf$TIIE[,1,11],
+           mo1_30Y = CumIRFs[[5]]$irf$MPTBF[,2,11],
+           ON_9mo = CumIRFs[[3]]$irf$TIIE[,1,11],
+           mo9_30Y = CumIRFs[[3]]$irf$MPTBI[,2,11],
            F_Own_p = Mex_d_TV$F_Own_p[-c(1,2)] - 0.2) #rescaling F_Own_p to fit in the same graph
 
 
@@ -150,13 +190,80 @@ Plot_cumIRF = ggplot(IRFPlotData, aes(x = Date, y = value, color = Spec)) +
         legend.title = element_blank(), legend.position = "bottom")
 Plot_cumIRF
 
-ARIMA_pVals[[5]]
-summary(Regs[[5]])
-save(VARs,CumIRFs, file = "TVVARResults.RData" )
-summary(CumIRFs[[5]])
-summary(CumIRFs_z[[5]])
-plot(CumIRFs_z[[1]], obs.index = 760)
 
+# Plotting IRFs for Foreign Ownership -------------------------------------
+
+plots = list(ON_9mo = list(), ON_3mo = list(), ON_6mo = list(), ON_1mo = list())
+for (Spec in 6:6){
+obs = dim(CumIRFs_z[[Spec]]$irf$TIIE)[1]
+bottom10 = CumIRFs_z[[Spec]]$irf$TIIE[1:ceiling(0.1 * obs) , 1, ]
+top10 = CumIRFs_z[[Spec]]$irf$TIIE[ceiling(0.9 * obs):obs , 1, ]
+CumIRF_bottom10 = apply(bottom10,2,median)
+CumIRF_top10 = apply(top10,2,median)
+
+bottom10_L = apply(IRF_CI_ON_1mo_90$Lower$TIIE[1:ceiling(0.1 * obs),1,],2,median)
+top10_L = apply(IRF_CI_ON_1mo_90$Lower$TIIE[ceiling(0.9 * obs):obs,1,],2,median)
+bottom10_H = apply(IRF_CI_ON_1mo_90$Upper$TIIE[1:ceiling(0.1 * obs),1,],2,median)
+top10_H = apply(IRF_CI_ON_1mo_90$Upper$TIIE[ceiling(0.9 * obs):obs,1,],2,median)
+# CumirfDat <- data.frame(Period = 0:10,
+#                          LowFo   = CumIRF_bottom10, HighFO = CumIRF_top10,
+#                          LowFo_L   = bottom10_L, HighFO_L = top10_L,
+#                          LowFo_H   = bottom10_H, HighFO_H = top10_H)
+irf_long_TIIE <- data.frame(
+  Period   = rep(0:10, 2),
+  Spec     = rep(c("LowFO", "HighFO"), each = 11),
+  Response = c(CumIRF_bottom10, CumIRF_top10),
+  Lower    = c(bottom10_L, top10_L),
+  Upper    = c(bottom10_H, top10_H)
+)
+# reshape to long format for ggplot
+# irf_long_TIIE <- melt(CumirfDat, id.vars = "Period",
+#                       variable.name = "Spec", value.name = "Response")
+
+#plots[[Spec-2]]
+x = ggplot(irf_long_TIIE, aes(x = Period, y = Response, color = Spec, fill = Spec)) +
+  geom_ribbon(aes(ymin = Lower, ymax = Upper), alpha = 0.2, linewidth = 0) +
+  geom_line(linewidth = 1.2) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
+  scale_x_continuous(breaks = c(0, 5, 10)) +
+  labs(x = "Horizon", y = "Cumulative IRF",
+       #title = paste("Response of", VARSpec[[Spec]][2], "to ON shock")) +
+       title = paste("Response of 1mo yield to ON shock")) +
+  theme_minimal() +
+  theme(axis.text = element_text(size = 14),
+        axis.title = element_text(size = 14),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 12),
+        legend.position = "bottom")
+x
+}
+plots$ON_1mo
+
+
+# Plotting without CIs ----------------------------------------------------
+
+obs = dim(CumIRFs_z_ON_1mo$irf$MPTBA)[1]
+bottom10 = CumIRFs_z_ON_1mo$irf$MPTBA[1:ceiling(0.3 * obs) , 2, ]
+top10 = CumIRFs_z_ON_1mo$irf$MPTBA[ceiling(0.7 * obs):obs , 2, ]
+CumIRF_bottom10 = apply(bottom10,2,median)*10
+CumIRF_top10 = apply(top10,2,median)*10
+
+CumirfDat <- data.frame(Period = 0:10, 
+                        LowFo   = CumIRF_bottom10, HighFO = CumIRF_top10)
+irf_long_TIIE <- melt(CumirfDat, id.vars = "Period",
+                      variable.name = "Spec", value.name = "Response")
+# plot
+ggplot(irf_long_TIIE, aes(x = Period, y = Response, color = Spec)) +
+  geom_line(linewidth = 1.2) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
+  scale_x_continuous(breaks = c(0, 5, 10)) +
+  labs(x = "Horizon", y = "Cumulative IRF",
+       title = "Response of 1mo to ON shock") +
+  theme_minimal() +
+  theme(axis.text = element_text(size = 14),
+        axis.title = element_text(size = 14),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 12), legend.position = "bottom")
 # Regressions on cumIRFs --------------------------------------------------
 
 regON1mo = lm(IRF1$irf$TIIE[,,11]~ Mex_w_TV$F_Own_p[-1])
@@ -167,6 +274,3 @@ VAR1 = tvVAR(Mex_w_TV[VARSpec[[1]]], p =1, type = "none" )
 IRF1 = tvIRF(VAR1, impulse = "TIIE", response = "MPTBA", runs = 100, level = 0.68,
              cumulative = T)
 IRF2 = tvIRF(VAR1, impulse = "TIIE", response = "MPTBA", runs = 100, level = 0.68)
-plot(IRF1)
-View(tvIRF)
-IRF1$irf$TIIE[,,11]

@@ -2,6 +2,8 @@
 # calculates proportion owned by different groups. It exports a file with data on 
 # foreign ownership.Also calculates some summary stats used in-text in the paper.
 
+# all values are in Millions of Pesos in source file Mex_GD_ownership.xlsx
+
 # Import data, create proportion, export FO --------------------------------
 
 ## Importing Ownership data ------------------------------------------------
@@ -63,6 +65,10 @@ for (i in 1:length(a) ){
   Own_Data[,a[i]] = Own_Data[,substr(a[i],1,nchar(a[i])-2)]/Own_Data["Sum"]                 #calculating proportions within a loop
 }
 
+#creating two columns showing proportion of residents and non-residents. Here 
+# denominator in share calculation changes.
+Own_Data["R_p"] = Own_Data$SF65217/Own_Data$SF65219
+Own_Data["NR_p"] = Own_Data$SF65218/Own_Data$SF65219
 
 # Creating FO Data --------------------------------------------------------
 Mex_FO = Own_Data[,c("Date","SF65218", "SF65218_p")]                              #Extracting foreign ownership data from all ownership data.
